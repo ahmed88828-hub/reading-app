@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>أَتَعَلَّمُ الْقِرَاءَة</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#6c5ce7">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff8e7;--fg:#2b2b3a;--card:#fff;--line:#e8dcc0;--ok:#2fb55a;--no:#e5484d;--acc:#6c5ce7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1b2e;--fg:#f4f1ff;--card:#2a2842;--line:#403d63}}
+:root[data-theme="dark"]{--bg:#1d1b2e;--fg:#f4f1ff;--card:#2a2842;--line:#403d63}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:'Cairo',system-ui,sans-serif;font-size:18px;line-height:1.7;padding:12px;max-width:640px;margin:auto}
+h1,h2{text-align:center;margin:8px 0}
+.c{text-align:center}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+button{font-family:inherit;cursor:pointer;color:var(--fg)}
+.sm{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:4px 12px;font-size:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border:3px solid var(--c,var(--acc));border-radius:20px;padding:14px 6px;font-size:18px;font-weight:800}
+.card.fin{grid-column:1/-1;--c:#f5a623;background:#f5a62333}
+.ic{display:block;font-size:40px}
+.box{background:var(--card);border:2px dashed var(--acc);border-radius:16px;padding:10px 14px;margin:10px 0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.tile{background:var(--card);border:3px solid var(--line);border-radius:18px;padding:8px 4px;text-align:center}
+.tile.on{border-color:var(--acc);transform:scale(1.04)}
+.big{font-size:40px;font-weight:800;line-height:1.5}
+.em{font-size:36px}
+.tile small{display:block;font-size:14px;opacity:.75;line-height:1.4}
+.go{display:block;margin:18px auto;background:var(--acc);color:#fff;border:0;border-radius:18px;padding:12px 28px;font-size:22px;font-weight:800}
+.bigq{font-size:44px;text-align:center;background:var(--card);border-radius:20px;padding:12px;margin:10px 0;font-weight:800}
+.opts{display:grid;gap:10px}
+.opt,.mb{background:var(--card);border:3px solid var(--line);border-radius:16px;padding:10px;font-size:28px;font-weight:800}
+.ok,.d{background:var(--ok)!important;color:#fff!important;border-color:var(--ok)!important}
+.no{background:var(--no)!important;color:#fff!important;animation:sk .3s}
+.sel{border-color:var(--acc);background:#6c5ce733}
+.mt{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mt>div{display:grid;gap:10px;align-content:start}
+.pg{text-align:center;opacity:.7;font-size:15px}
+@keyframes sk{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const L=[
+{t:"الحركات القصيرة",i:"🔤",c:"#e5484d",
+h:"<b>لعبة الحركة:</b> فتحة = ارفع يدك لفوق ⬆️ | ضمة = يدك قدّام ➡️ | كسرة = انزل بيدك لتحت ⬇️. اضغط على كل مربع واسمع الصوت وكرّر وراءه!",
+k:[["بَ","","فتحة (فوق)"],["بُ","","ضمة (قدّام)"],["بِ","","كسرة (تحت)"],["مَ","","فتحة"],["مُ","","ضمة"],["مِ","","كسرة"],["سَ","","فتحة"],["سُ","","ضمة"],["سِ","","كسرة"]],
+q:[{q:"أيّ حرف عليه فتحة؟",o:["مَ","مُ","مِ"]},{q:"أيّ حرف عليه ضمة؟",o:["سُ","سَ","سِ"]},{q:"أيّ حرف عليه كسرة؟",o:["بِ","بُ","بَ"]},{q:"ما حركة هذا الحرف؟",b:"تِ",o:["كسرة","فتحة","ضمة"]},{q:"ما حركة هذا الحرف؟",b:"نُ",o:["ضمة","كسرة","فتحة"]}],
+m:[["بَ","فتحة"],["مُ","ضمة"],["سِ","كسرة"]]},
+{t:"الحركات الطويلة (المدود)",i:"〰️",c:"#f5a623",
+h:"<b>لعبة الحركة:</b> المدّ = افتح ذراعيك واسحبهم ببطء وأنت تمدّ الصوت: باااا 🙆. المدّ يكون بالألف أو الواو أو الياء، ونمدّه حركتين.",
+k:[["بَا","","مدّ بالألف"],["مَا","","مدّ بالألف"],["بُو","","مدّ بالواو"],["نُو","","مدّ بالواو"],["بِي","","مدّ بالياء"],["سِي","","مدّ بالياء"]],
+q:[{q:"أيّ واحد فيه مدّ بالألف؟",o:["مَا","مُو","مِي"]},{q:"أيّ واحد فيه مدّ بالواو؟",o:["نُو","نَا","نِي"]},{q:"أيّ واحد فيه مدّ بالياء؟",o:["سِي","سَا","سُو"]},{q:"اقرأ واختر الصوت:",b:"بَا",o:["با","بو","بي"]},{q:"اقرأ واختر الصوت:",b:"مُو",o:["مو","ما","مي"]}],
+m:[["بَا","مدّ بالألف"],["بُو","مدّ بالواو"],["بِي","مدّ بالياء"]]},
+{t:"كلمات بسيطة",i:"🏠",c:"#2fb55a",
+h:"اقرأ الكلمة مقطعاً مقطعاً ثم ادمجها. اضغط على الكلمة لتسمعها. <b>تحدّي:</b> اقفز قفزة مع كل مقطع! 🦘",
+k:[["بَابَا","👨","بَا - بَا"],["مَامَا","👩","مَا - مَا"],["بَاب","🚪","بَا + ب"],["بَيْت","🏠","بَيْ + ت"],["وَلَد","👦","وَ - لَد"],["كِتَاب","📕","كِ - تَاب"],["قَمَر","🌙","قَ - مَر"],["شَمْس","☀️","شَمْ + س"],["سَمَك","🐟","سَ - مَك"],["قِطَّة","🐱","قِطْ - طَة"],["تُفَّاح","🍎","تُفْ - فَاح"],["مَاء","💧","مَا + ء"]],
+q:[{q:"ما هذه الكلمة؟",b:"🏠",o:["بَيْت","بَاب","قَمَر"]},{q:"ما هذه الكلمة؟",b:"🐟",o:["سَمَك","قِطَّة","مَاء"]},{q:"ما هذه الكلمة؟",b:"🍎",o:["تُفَّاح","كِتَاب","وَلَد"]},{q:"ما هذه الكلمة؟",b:"🌙",o:["قَمَر","شَمْس","بَاب"]},{q:"ما هذه الكلمة؟",b:"👦",o:["وَلَد","مَامَا","بَابَا"]},{q:"اقرأ الكلمة وانطقها:",b:"كِتَاب",o:["📕","🚪","🐱"]}]},
+{t:"السكون والتنوين والشدة",i:"✨",c:"#00a3bf",
+h:"<b>السكون ْ</b> = الحرف ساكن بلا صوت حركة. <b>الشدة ّ</b> = حرف مكرّر (ننطقه مرتين). <b>التنوين</b> = صوت نون في آخر الكلمة. قل: كُرَّة = كُرْ + رَة ⚽",
+k:[["وَلَدٌ","","ـٌ  ضمتان: ولدُن"],["بَيْتٍ","","ـٍ  كسرتان: بيتِن"],["بَابًا","","ـً  فتحتان: بابَن"],["كِتَابٌ","","تنوين ضم"],["قِطَّةٌ","🐱","شدّة على الطاء"],["كُرَّةٌ","⚽","شدّة على الراء"]],
+q:[{q:"أيّ كلمة فيها تنوين ضم؟",o:["وَلَدٌ","وَلَدٍ","وَلَدًا"]},{q:"أيّ كلمة فيها تنوين كسر؟",o:["بَيْتٍ","بَيْتٌ","بَيْتًا"]},{q:"أيّ كلمة فيها شدّة؟",o:["كُرَّة","كُرَة","كَرْم"]},{q:"كم مرة ننطق الطاء في قِطَّة؟",o:["مرتين","مرة واحدة"]},{q:"أيّ كلمة فيها سكون؟",o:["شَمْس","قَمَر","سَمَك"]}],
+m:[["وَلَدٌ","ضمتان"],["بَيْتٍ","كسرتان"],["بَابًا","فتحتان"]]},
+{t:"ضمائر المتكلم",i:"🙋",c:"#6c5ce7",
+h:"<b>المتكلم</b> هو أنا الذي أتكلم. أستعمل <b>أَنَا</b> لنفسي وحدي، و<b>نَحْنُ</b> لي ولغيري. <b>حركة:</b> أنا = أشير لصدري 🙋 | نحن = أمدّ يدي لأصحابي 👫",
+k:[["أَنَا","🙋","أنا: أتكلم عن نفسي"],["نَحْنُ","👫","نحن: أنا وغيري"],["أَنَا أَقْرَأُ","📖","أنا + أقرأ"],["نَحْنُ نَلْعَبُ","⚽","نحن + نلعب"]],
+q:[{q:"أيّ ضمير للمتكلم؟",o:["أَنَا","أَنْتَ","هُوَ"]},{q:"أُشير لنفسي وأقول:",o:["أَنَا","هُوَ","هِيَ"]},{q:"أنا وأصحابي: ___ نَلْعَبُ",o:["نَحْنُ","أَنَا","هُمْ"]},{q:"___ أَكْتُبُ",o:["أَنَا","هُوَ","هِيَ"]},{q:"___ نَأْكُلُ مَعاً",o:["نَحْنُ","أَنَا","أَنْتَ"]}]},
+{t:"ضمائر المخاطب",i:"👉",c:"#00a3bf",
+h:"<b>المخاطب</b> هو الذي أتكلم معه. يبدأ بـ<b>أَنْتَ</b>: لولد أَنْتَ، لبنت أَنْتِ، لاثنين أَنْتُمَا، لأولاد كثيرين أَنْتُمْ، لبنات كثيرات أَنْتُنَّ. <b>حركة:</b> أشير بإصبعي نحو من أكلّمه 👉",
+k:[["أَنْتَ","👦","أكلّم ولداً"],["أَنْتِ","👧","أكلّم بنتاً"],["أَنْتُمَا","👫","أكلّم اثنين"],["أَنْتُمْ","👥","أكلّم أولاداً"],["أَنْتُنَّ","👭","أكلّم بنات"]],
+q:[{q:"أكلّم ولداً: ___ جَمِيلٌ",o:["أَنْتَ","أَنْتِ","أَنْتُمَا"]},{q:"أكلّم بنتاً: ___ جَمِيلَةٌ",o:["أَنْتِ","أَنْتَ","أَنْتُمْ"]},{q:"أكلّم اثنين: ___ مُجْتَهِدَانِ",o:["أَنْتُمَا","أَنْتَ","أَنْتِ"]},{q:"أكلّم أولاداً كثيرين:",o:["أَنْتُمْ","أَنْتُمَا","أَنْتُنَّ"]},{q:"أكلّم بنات كثيرات:",o:["أَنْتُنَّ","أَنْتُمْ","أَنْتِ"]},{q:"أيّ ضمير للمخاطب؟",o:["أَنْتَ","هِيَ","أَنَا"]}]},
+{t:"ضمائر الغائب",i:"👈",c:"#e5484d",
+h:"<b>الغائب</b> هو الذي أتكلم عنه وهو ليس أمامي. يبدأ بـ<b>هُوَ</b>: لولد هُوَ، لبنت هِيَ، لاثنين هُمَا، لأولاد هُمْ، لبنات هُنَّ. <b>حركة:</b> أشير بيدي بعيداً 👈",
+k:[["هُوَ","👦","ولد غائب"],["هِيَ","👧","بنت غائبة"],["هُمَا","👬","اثنان غائبان"],["هُمْ","👥","أولاد غائبون"],["هُنَّ","👭","بنات غائبات"]],
+q:[{q:"بَابَا يَعْمَلُ: ___ يَعْمَلُ",o:["هُوَ","هِيَ","هُمْ"]},{q:"مَامَا تَطْبُخُ: ___ تَطْبُخُ",o:["هِيَ","هُوَ","هُمَا"]},{q:"الْوَلَدَانِ يَلْعَبَانِ: ___ يَلْعَبَانِ",o:["هُمَا","هُمْ","هُنَّ"]},{q:"الْأَوْلَادُ يَلْعَبُونَ:",o:["هُمْ","هُمَا","هُنَّ"]},{q:"الْبَنَاتُ يَلْعَبْنَ:",o:["هُنَّ","هُمْ","هِيَ"]},{q:"أيّ ضمير للغائب؟",o:["هُوَ","أَنَا","أَنْتَ"]}]},
+{t:"أسماء الإشارة",i:"☝️",c:"#2fb55a",
+h:"أسماء الإشارة نُشير بها إلى شيء. <b>للقريب:</b> هَذَا (مذكر) هَذِهِ (مؤنث) هَؤُلَاءِ (جمع). <b>للبعيد:</b> ذَلِكَ (مذكر) تِلْكَ (مؤنث) أُولَئِكَ (جمع). <b>حركة:</b> قريب = أشير بإصبعي بقرب جسمي 📍 | بعيد = أمدّ ذراعي بعيداً 🔭",
+k:[["هَذَا","📍","هَذَا كِتَابٌ (قريب، مذكر)"],["هَذِهِ","📍","هَذِهِ قِطَّةٌ (قريب، مؤنث)"],["هَؤُلَاءِ","📍","هَؤُلَاءِ أَوْلَادٌ (قريب، جمع)"],["ذَلِكَ","🔭","ذَلِكَ قَمَرٌ (بعيد، مذكر)"],["تِلْكَ","🔭","تِلْكَ شَمْسٌ (بعيد، مؤنث)"],["أُولَئِكَ","🔭","أُولَئِكَ أَوْلَادٌ (بعيد، جمع)"]],
+q:[{q:"أشير لكتاب قريب: ___ كِتَابٌ",o:["هَذَا","هَذِهِ","ذَلِكَ"]},{q:"أشير لقطة قريبة: ___ قِطَّةٌ",o:["هَذِهِ","هَذَا","تِلْكَ"]},{q:"أشير لقمر بعيد: ___ قَمَرٌ",o:["ذَلِكَ","هَذَا","تِلْكَ"]},{q:"أشير لشمس بعيدة: ___ شَمْسٌ",o:["تِلْكَ","هَذِهِ","ذَلِكَ"]},{q:"أشير لأولاد قريبين: ___ أَوْلَادٌ",o:["هَؤُلَاءِ","هَذَا","ذَلِكَ"]},{q:"أيّ اسم إشارة للقريب؟",o:["هَذَا","ذَلِكَ","تِلْكَ"]}],
+m:[["هَذَا","📕 كتاب قريب"],["هَذِهِ","🐱 قطة قريبة"],["ذَلِكَ","🌙 قمر بعيد"],["تِلْكَ","☀️ شمس بعيدة"]]},
+{t:"حروف الجر",i:"📦",c:"#e5484d",
+h:"حروف الجر تربط الكلمات وتوضّح المكان: <b>فِي، عَلَى، مِنْ، إِلَى، عَنْ</b>. مثّلها بجسمك: ضع لعبة <b>فِي</b> صندوق، و<b>عَلَى</b> الكرسي!",
+k:[["فِي","📦","القِطَّةُ فِي الصُّنْدُوقِ"],["عَلَى","⬆️","الكِتَابُ عَلَى الطَّاوِلَةِ"],["مِنْ","🚪","خَرَجَ الوَلَدُ مِنَ البَيْتِ"],["إِلَى","➡️","ذَهَبَ الوَلَدُ إِلَى المَدْرَسَةِ"],["عَنْ","💬","سَأَلَ عَنْ بَابَا"]],
+q:[{q:"الكِتَابُ ___ الطَّاوِلَةِ",o:["عَلَى","فِي","مِنْ"]},{q:"السَّمَكُ ___ المَاءِ",o:["فِي","عَلَى","إِلَى"]},{q:"أَذْهَبُ ___ المَدْرَسَةِ",o:["إِلَى","عَنْ","مِنْ"]},{q:"خَرَجْتُ ___ البَيْتِ",o:["مِنَ","إِلَى","عَلَى"]},{q:"الطَّائِرُ ___ الشَّجَرَةِ (فوقها)",o:["عَلَى","مِنْ","عَنْ"]}],
+m:[["فِي","📦"],["عَلَى","⬆️"],["إِلَى","➡️"]]},
+{t:"قراءة جمل",i:"📖",c:"#f5a623",
+h:"الآن نقرأ جملاً كاملة! اقرأ ببطء، ثم أعد القراءة بسرعة أكبر. <b>تحدّي:</b> اقرأ الجملة دون أخطاء 3 مرات 🏅",
+k:[["بَابَا فِي الْبَيْتِ","🏠","بابا + في + البيت"],["أَنَا أُحِبُّ مَامَا","❤️","أنا + أحب + ماما"],["هُوَ يَشْرَبُ الْمَاءَ","💧","هو + يشرب + الماء"],["هِيَ تَقْرَأُ كِتَابًا","📖","هي + تقرأ + كتاباً"],["الْقِطَّةُ عَلَى الْبَابِ","🐱","القطة + على + الباب"],["نَحْنُ نَلْعَبُ بِالْكُرَةِ","⚽","نحن + نلعب + بالكرة"]],
+q:[{q:"أيّ صورة تناسب الجملة؟",b:"هِيَ تَقْرَأُ كِتَابًا",o:["📖","💧","⚽"]},{q:"أيّ صورة تناسب الجملة؟",b:"هُوَ يَشْرَبُ الْمَاءَ",o:["💧","🏠","❤️"]},{q:"أيّ صورة تناسب الجملة؟",b:"نَحْنُ نَلْعَبُ بِالْكُرَةِ",o:["⚽","📖","🐱"]},{q:"أكمل: أَنَا ___ مَامَا",o:["أُحِبُّ","يَشْرَبُ","تَقْرَأُ"]},{q:"أكمل: بَابَا ___ الْبَيْتِ",o:["فِي","هُوَ","أَنَا"]}]}
+];
+const app=document.getElementById('app');
+let stars=0,Q,N,DONE;
+const sh=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+let VO=null,AC;
+function vcs(){try{VO=speechSynthesis.getVoices().find(x=>/^ar/i.test(x.lang))||null}catch(e){}}
+try{speechSynthesis.onvoiceschanged=vcs;vcs()}catch(e){}
+function beep(f,d,t){if(window.SET&&SET.fx===0)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state=='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.value=.2;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.stop(AC.currentTime+d)}catch(e){}}
+let ding=()=>{beep(660,.15);setTimeout(()=>beep(880,.3),140)};
+const buzz=()=>beep(170,.3,'square');
+function warn(){if(document.getElementById('nv'))return;document.body.insertAdjacentHTML('beforeend','<div id="nv" class="box" style="position:sticky;bottom:8px">🔇 جهازك ما عندوش صوت عربي للنطق. فعّل صوت العربية من إعدادات الجهاز (تحويل النص إلى كلام / المحتوى المنطوق) وارفع الصوت. <button class="sm" onclick="this.parentNode.remove()">حسناً</button></div>')}
+function sp(t){beep(520,.08);try{if(!window.speechSynthesis)return warn();vcs();if(!VO)setTimeout(()=>{vcs();if(!VO)warn()},600);speechSynthesis.cancel();setTimeout(()=>{const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';u.rate=SET.rate;u.volume=1;if(VO)u.voice=VO;speechSynthesis.speak(u)},100)}catch(e){warn()}}
+const tb=()=>`<div class="bar">${(HIST.length>1||SUB)?'<button class="sm" onclick="back()">↩️ رجوع</button>':''}<button class="sm" onclick="home()">🏠 الرئيسية</button><button class="sm" onclick="settings()">⚙️</button><b>⭐ ${stars-(PR.sp||0)}</b></div>`;
+function qs_(){if(N>=Q.length)return DONE();const q=Q[N];const os=sh(q.o.map((t,k)=>[t,k==0]));
+app.innerHTML=tb()+`<div class="pg">سؤال ${N+1} من ${Q.length}</div><h2>${q.q}</h2>${q.b?`<div class="bigq" onclick="sp('${q.b}')">${q.b} 🔊</div>`:''}<div class="opts">${os.map(o=>`<button class="opt" data-ok="${o[1]}" onclick="pick(this)">${o[0]}</button>`).join('')}</div>`}
+function mrun(p,d){let sel=null,left=p.length;
+app.innerHTML=tb()+`<h2>🔗 وَصِّلْ كُلَّ شَيْءٍ بِمَا يُنَاسِبُهُ</h2><p class="c">اختر من اليمين ثم ما يناسبه من اليسار</p><div class="mt"><div>${sh(p).map(x=>`<button class="mb" data-k="${x[0]}">${x[0]}</button>`).join('')}</div><div>${sh(p).map(x=>`<button class="mb" data-r="1" data-k="${x[0]}">${x[1]}</button>`).join('')}</div></div>`;
+app.querySelectorAll('.mb').forEach(b=>b.onclick=()=>{if(b.classList.contains('d'))return;
+if(!b.dataset.r){app.querySelectorAll('.mb:not([data-r])').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=b;sp(b.textContent)}
+else if(sel){if(sel.dataset.k==b.dataset.k){sel.classList.remove('sel');sel.classList.add('d');b.classList.add('d');sel=null;stars++;ding();sp('برافو');if(--left==0)setTimeout(d,900)}else{b.classList.add('no');buzz();setTimeout(()=>b.classList.remove('no'),500)}}})}
+function win(i){const n=i+1<L.length?`<button class="go" onclick="learn(${i+1})">الدرس التالي ⬅️</button>`:`<button class="go" onclick="fin()">الاختبار الكبير 🏆</button>`;
+app.innerHTML=tb()+`<h1>🎉 أَحْسَنْتَ يَا بَطَل!</h1><p class="c" style="font-size:64px;margin:0">🏅</p><p class="c">أنهيت درس «${L[i].t}»<br>نجومك: ⭐ ${stars}</p>${n}<button class="go" style="background:var(--card);color:var(--fg);border:2px solid var(--line)" onclick="learn(${i})">أعيد الدرس 🔁</button>`}
+function fin(){const all=sh(L.flatMap(l=>l.q)).slice(0,12);const p=sh(L[2].k.filter(c=>c[1])).slice(0,3).concat(sh(L[4].k.filter(c=>c[1])).slice(0,2)).map(c=>[c[0],c[1]]);
+qrun(all,()=>mrun(p,()=>{app.innerHTML=tb()+`<h1>🏆 بَطَلُ الْقِرَاءَة!</h1><p class="c" style="font-size:64px;margin:0">👑</p><p class="c">أنهيت الاختبار الكبير<br>مجموع نجومك: ⭐ ${stars}</p><button class="go" onclick="home()">الرئيسية 🏠</button>`;sp('أنت بطل القراءة')}))}
+
+let PR;try{PR=JSON.parse(localStorage.getItem('arPR'))}catch(e){}
+PR=Object.assign({m:{},b:{},e:{},d:[],u:0,s:0},PR||{});stars=PR.s||0;
+let ST=null,REC={},MR=null;
+const idb=new Promise(r=>{try{const q=indexedDB.open('ar',1);q.onupgradeneeded=()=>q.result.createObjectStore('r');q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
+async function dbset(k,v){try{const d=await idb;if(d)d.transaction('r','readwrite').objectStore('r').put(v,k)}catch(e){}}
+(async()=>{try{const d=await idb;if(!d)return;d.transaction('r').objectStore('r').openCursor().onsuccess=e=>{const c=e.target.result;if(c){REC[c.key]=URL.createObjectURL(c.value);c.continue()}}}catch(e){}})();
+function note(m){const o=document.getElementById('nv');if(o)o.remove();document.body.insertAdjacentHTML('beforeend','<div id="nv" class="box" style="position:sticky;bottom:8px">'+m+' <button class="sm" onclick="this.parentNode.remove()">حسناً</button></div>')}
+const sp0=sp;
+sp=function(t){if(REC[t]){beep(520,.08);try{new Audio(REC[t]).play();return}catch(e){}}if(SET.voice!==0)sp0(t)};
+async function rec(t,btn){
+if(MR&&MR.state=='recording'){MR.stop();return}
+try{const s=await navigator.mediaDevices.getUserMedia({audio:true});const ch=[];MR=new MediaRecorder(s);
+MR.ondataavailable=e=>ch.push(e.data);
+MR.onstop=()=>{s.getTracks().forEach(x=>x.stop());const bl=new Blob(ch,{type:MR.mimeType});REC[t]=URL.createObjectURL(bl);dbset(t,bl);btn.textContent='🎙️✅';ding()};
+MR.start();btn.textContent='⏹️ اضغط للإيقاف';setTimeout(()=>{if(MR.state=='recording')MR.stop()},5000)}
+catch(e){note('🎙️ الميكروفون غير متاح هنا. اسمح له من إعدادات المتصفح، أو افتح الرابط مباشرة في Chrome أو Safari.')}}
+function lockmsg(){document.getElementById('mm').textContent='🔒 أنهِ الدرس السابق بنسبة ٨٠٪ أولاً'}
+function home(){if(!CUR)return welcome();ST=null;const due=PR.d.filter(x=>x.due<=Date.now()).length;
+app.innerHTML=tb()+`<h1>📚 أَتَعَلَّمُ الْقِرَاءَة</h1><p class="c">👨‍🏫 المعلم ${esc(SET.tn)} &nbsp;|&nbsp; ${PR.av||'👦'} ${esc(CUR.name)}</p><p class="c">اضغط على أيّ كلمة لتسمعها 🔊<br><small>🎙️ سجّل صوتك على الكلمات داخل كل درس</small></p><p id="mm" class="c"></p>${due?`<button class="go" onclick="review()">🔁 مراجعة اليوم (${due})</button>`:''}<div class="grid"><button class="card fin" style="--c:#e5484d" onclick="letters()"><span class="ic">🔤</span>تعلّم الحروف من البداية ✨${LC()}</button>${L.map((l,i)=>{const lk=i>0&&!PR.u&&!(PR.m[i-1]>=80);return `<button class="card" style="--c:${l.c};opacity:${lk?.5:1}" onclick="${lk?'lockmsg()':`learn(${i})`}"><span class="ic">${lk?'🔒':l.i}</span>${i+1}. ${l.t}${PR.m[i]>=80?' ✅':''}</button>`}).join('')}<button class="card" style="--c:#00a3bf" onclick="stories()"><span class="ic">📕</span>قصص قصيرة</button><button class="card" style="--c:#2fb55a" onclick="writing()"><span class="ic">✍️</span>الكتابة والإملاء</button><button class="card fin" onclick="fin()"><span class="ic">🏆</span>الاختبار الكبير</button><button class="card" style="--c:#f5a623" onclick="rew()"><span class="ic">🏅</span>مكافآتي</button><button class="card fin" style="--c:#e84393" onclick="fun()"><span class="ic">🎪</span>ركن الترفيه</button><button class="card" style="--c:#555" onclick="settings()"><span class="ic">⚙️</span>الإعدادات</button><button class="card" style="--c:#777" onclick="welcome()"><span class="ic">🔄</span>تغيير الطالب</button><button class="card" style="--c:#999" onclick="dash()"><span class="ic">📊</span>تقرير الطالب</button></div>`}
+function learn(i){const l=L[i];
+app.innerHTML=tb()+`<h2>${l.i} ${l.t}</h2><div class="box">${l.h}<br><small>🎙️ سجّل صوتك على كل كلمة، وبعدها الضغط عليها يشغّل صوتك.</small></div><div class="tiles">${l.k.map((c,j)=>`<div class="tile" onclick="sp(L[${i}].k[${j}][0]);this.classList.add('on')"><div class="big">${c[0]}</div>${c[1]?`<div class="em">${c[1]}</div>`:''}<small>${c[2]||''}</small><button class="sm" onclick="event.stopPropagation();rec(L[${i}].k[${j}][0],this)">${REC[c[0]]?'🎙️✅':'🎙️'}</button></div>`).join('')}</div><button class="go" onclick="play(${i})">ابدأ الألعاب 🎮</button>`}
+function qrun(qs,d){Q=qs.map(q=>({...q}));N=0;DONE=d;qs_()}
+function pick(b){const q=Q[N];
+if(b.dataset.ok=='true'){b.classList.add('ok');stars++;ding();sp('أحسنت');setTimeout(()=>{N++;qs_()},900);save()}
+else{b.classList.add('no');buzz();setTimeout(()=>sp('حاول مرة أخرى'),300);setTimeout(()=>b.classList.remove('no'),400);
+if(!q.w){q.w=1;if(ST)ST.w++;const k=q.b?q.b+' ← '+q.o[0]:q.q+' ← '+q.o[0];PR.e[k]=(PR.e[k]||0)+1;save()}}}
+const win0=win;
+win=function(i){if(!PR.d.some(x=>x.i==i))PR.d.push({i,due:Date.now()+864e5,s:0});save();win0(i)};
+function review(){const due=PR.d.filter(x=>x.due<=Date.now());ST=null;
+qrun(sh(due.flatMap(x=>L[x.i].q)).slice(0,6),()=>{due.forEach(x=>{x.s++;if(x.s>=3)PR.d=PR.d.filter(y=>y!==x);else x.due=Date.now()+[1,3,7][x.s]*864e5});save();
+app.innerHTML=tb()+`<h1>🔁 أَحْسَنْتَ!</h1><p class="c">أنهيت مراجعة اليوم 🌟</p><button class="go" onclick="home()">الرئيسية 🏠</button>`})}
+const S=[
+{t:"الْقِطَّةُ وَالْمَاءُ",e:"🐱",p:[["الْقِطَّةُ فِي الْبَيْتِ","🐱🏠"],["هِيَ تُحِبُّ الْمَاءَ","💧"],["الْقِطَّةُ تَشْرَبُ الْمَاءَ","🐱💧"],["ثُمَّ تَنَامُ عَلَى الْبَابِ","😴🚪"]],q:[{q:"مَنْ فِي الْبَيْتِ؟",o:["الْقِطَّةُ","الْوَلَدُ","السَّمَكُ"]},{q:"مَاذَا تَشْرَبُ الْقِطَّةُ؟",o:["الْمَاءَ","التُّفَّاحَ","الْكِتَابَ"]},{q:"أَيْنَ تَنَامُ؟",o:["عَلَى الْبَابِ","فِي الْمَاءِ","عَلَى الْقَمَرِ"]}]},
+{t:"الْوَلَدُ وَالْكُرَةُ",e:"⚽",p:[["الْوَلَدُ يَلْعَبُ بِالْكُرَةِ","👦⚽"],["الْكُرَةُ عَلَى الْبَابِ","⚽🚪"],["بَابَا يَقُولُ أَحْسَنْتَ","👨👍"]],q:[{q:"بِمَاذَا يَلْعَبُ الْوَلَدُ؟",o:["بِالْكُرَةِ","بِالْكِتَابِ","بِالسَّمَكَةِ"]},{q:"أَيْنَ الْكُرَةُ؟",o:["عَلَى الْبَابِ","فِي الْمَاءِ","فِي الْبَيْتِ"]},{q:"مَنْ يَقُولُ أَحْسَنْتَ؟",o:["بَابَا","الْقِطَّةُ","الْقَمَرُ"]}]},
+{t:"مَامَا وَالتُّفَّاحُ",e:"🍎",p:[["مَامَا فِي الْبَيْتِ","👩🏠"],["هِيَ تُحِبُّ التُّفَّاحَ","🍎"],["أَنَا آكُلُ التُّفَّاحَ مَعَ مَامَا","👦🍎👩"]],q:[{q:"مَنْ فِي الْبَيْتِ؟",o:["مَامَا","الْقِطَّةُ","الْقَمَرُ"]},{q:"مَاذَا تُحِبُّ مَامَا؟",o:["التُّفَّاحَ","السَّمَكَ","الْكِتَابَ"]},{q:"مَعَ مَنْ آكُلُ التُّفَّاحَ؟",o:["مَعَ مَامَا","مَعَ الْقِطَّةِ","مَعَ الْقَمَرِ"]}]}];
+function stories(){app.innerHTML=tb()+`<h2>📕 قِصَصٌ قَصِيرَةٌ</h2><p class="c">اقرأ كل قصة ٣ مرات ثم أجب عن الأسئلة</p><div class="opts">${S.map((s,i)=>`<button class="opt" onclick="story(${i},0)">${s.e} ${s.t}</button>`).join('')}</div>`}
+function story(i,r){const s=S[i];
+if(r>=3){ST=null;return qrun(s.q,()=>{stars+=3;save();app.innerHTML=tb()+`<h1>🎉 أَحْسَنْتَ!</h1><p class="c">أنهيت قصة «${s.t}» (+٣ ⭐)</p><button class="go" onclick="stories()">قصة أخرى 📕</button>`})}
+app.innerHTML=tb()+`<h2>${s.e} ${s.t}</h2><p class="c">القراءة ${r+1} من ٣: اقرأ ${['ببطء 🐢','أسرع 🐇','بتعبير 🎭'][r]}</p><div class="opts">${s.p.map((x,j)=>`<button class="opt" style="font-size:24px" onclick="sp(S[${i}].p[${j}][0])">${x[1]}<br>${x[0]}</button>`).join('')}</div><button class="go" onclick="story(${i},${r+1})">قرأتها 👍</button>`}
+
+(function(){
+const cl=w=>w.split(' ').map(x=>(x.match(/[\u0621-\u064A][\u064B-\u0652]*/g)||[x]).join('-')).join('  ');
+const aq=(k,x)=>{const o=[];sh(k).slice(0,5).forEach(c=>{o.push({q:"أيّ كلمة تناسب الصورة؟",b:c[1],o:[c[0],...sh(k.filter(y=>y!==c)).slice(0,2).map(y=>y[0])]})});
+sh(k).slice(0,2).forEach(c=>{o.push({q:"اقرأ واختر الصورة:",b:c[0],o:[c[1],...sh(k.filter(y=>y!==c)).slice(0,2).map(y=>y[1])]})});return o.concat(x)};
+const mk=(t,i,c,h,w,x)=>({t,i,c,h,k:w.map(a=>[a[0],a[1],cl(a[0])]),q:aq(w,x),m:sh(w).slice(0,5).map(a=>[a[0],a[1]])});
+const F=[["كَتَبَ","✍️"],["فَتَحَ","🔓"],["شَرَحَ","👨‍🏫"],["رَسَمَ","🎨"],["جَلَسَ","🪑"],["ذَهَبَ","🚶"],["نَزَلَ","⬇️"],["دَخَلَ","🚪"],["حَمَلَ","🎒"],["طَبَخَ","🍳"],["غَسَلَ","🧼"],["قَفَزَ","🦘"]];
+const D=[["كَبُرَ","📈"],["صَغُرَ","🐜"],["حَسُنَ","😊"],["كَرُمَ","🎁"],["سَهُلَ","👍"],["صَعُبَ","🧗"],["ثَقُلَ","🏋️"],["عَظُمَ","🐘"],["قَرُبَ","📍"],["بَعُدَ","🔭"]];
+const K=[["شَرِبَ","🥤"],["لَعِبَ","⚽"],["سَمِعَ","👂"],["فَرِحَ","😀"],["حَزِنَ","😢"],["تَعِبَ","😓"],["لَبِسَ","👕"],["رَكِبَ","🚌"],["غَضِبَ","😠"],["حَفِظَ","🧠"],["عَلِمَ","💡"]];
+const M=[["كَتَبَ","✍️"],["شَرِبَ","🥤"],["كَبُرَ","📈"],["فَتَحَ","🔓"],["فَرِحَ","😀"],["حَسُنَ","😊"],["لَعِبَ","⚽"],["صَغُرَ","🐜"],["كَتَبَ الْوَلَدُ","✍️👦"],["شَرِبَ الْوَلَدُ","🥤👦"],["فَتَحَ بَابَا الْبَابَ","🔓👨"],["جَلَسَ الْوَلَدُ","🪑👦"]];
+const g="<br><small>من الأسهل إلى الأصعب. اقرأ كل حرف ثم اجمع، واضغط الكلمة لتسمعها.</small>";
+const i=L.findIndex(l=>l.t=="كلمات ثلاثية بالفتحة");
+L.splice(i,4,
+mk("أفعال ثلاثية بالفتح (فَعَلَ)",'⬆️',"#e5484d","<b>الفعل الثلاثي:</b> ٣ حروف، وهنا كل حرف بفتحة: كَ - تَ - بَ = <b>كَتَبَ</b>. <b>حركة:</b> ارفع يدك لفوق مع كل حرف ثم صفّق 👏"+g,F,[{q:"الحرف الأوسط في كَتَبَ حركته؟",o:["فتحة","ضمة","كسرة"]},{q:"أيّ كلمة كل حروفها بفتحة؟",o:["فَتَحَ","كَبُرَ","شَرِبَ"]}]),
+mk("أفعال ثلاثية بالضم (فَعُلَ)",'➡️',"#f5a623","<b>الحرف الأوسط بضمة:</b> كَ - بُ - رَ = <b>كَبُرَ</b>. <b>حركة:</b> أول وآخر حرف بيدك لفوق، وعند الحرف الأوسط مدّ يدك للأمام ➡️"+g,D,[{q:"الحرف الأوسط في كَبُرَ حركته؟",o:["ضمة","فتحة","كسرة"]},{q:"أيّ كلمة وسطها ضمة؟",o:["حَسُنَ","حَمَلَ","حَزِنَ"]}]),
+mk("أفعال ثلاثية بالكسر (فَعِلَ)",'⬇️',"#2fb55a","<b>الحرف الأوسط بكسرة:</b> شَ - رِ - بَ = <b>شَرِبَ</b>. <b>حركة:</b> أول وآخر حرف بيدك لفوق، وعند الحرف الأوسط انزل بيدك لتحت ⬇️"+g,K,[{q:"الحرف الأوسط في شَرِبَ حركته؟",o:["كسرة","فتحة","ضمة"]},{q:"أيّ كلمة وسطها كسرة؟",o:["لَعِبَ","كَتَبَ","كَبُرَ"]}]),
+mk("أفعال وجمل بكل الحركات",'🔀',"#6c5ce7","<b>الفتح والضم والكسر معاً!</b> انتبه للحرف الأوسط. وفي الآخر جمل قصيرة: الفعل + من فعل. <b>تحدّي:</b> اقرأ كل شيء في دقيقتين ⏱️"+g,M,[{q:"أيّ كلمة وسطها ضمة؟",o:["كَبُرَ","كَتَبَ","شَرِبَ"]},{q:"أيّ كلمة وسطها كسرة؟",o:["فَرِحَ","فَتَحَ","صَغُرَ"]},{q:"أيّ كلمة وسطها فتحة؟",o:["فَتَحَ","فَرِحَ","كَبُرَ"]}]));
+})();
+
+
+document.head.insertAdjacentHTML('beforeend','<style>#stk{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:99;animation:pp 1.2s ease-out forwards}#stk b{font-size:120px;line-height:1}#stk span{background:var(--acc);color:#fff;border-radius:12px;padding:2px 12px;font-weight:800}@keyframes pp{0%{transform:scale(.2);opacity:0}25%{transform:scale(1.2);opacity:1}80%{opacity:1}100%{transform:scale(1) translateY(-60px);opacity:0}}</style>');
+const SK=['🦄','🐶','🐱','🐼','🦁','🐯','🐸','🐵','🐰','🦊','🐧','🦋','🐞','🐢','🐬','🚀','🌈','🍭','🎈','🎂','⚽','🏆','🎁','👑'];
+function sticker(){const s=SK[Math.floor(Math.random()*SK.length)];PR.st=PR.st||{};const nw=!PR.st[s];PR.st[s]=(PR.st[s]||0)+1;save();
+const o=document.getElementById('stk');if(o)o.remove();
+document.body.insertAdjacentHTML('beforeend',`<div id="stk"><b>${s}</b>${nw?'<span>✨ ستيكر جديد!</span>':''}</div>`);
+setTimeout(()=>{const e=document.getElementById('stk');if(e)e.remove()},1200)}
+const ding0=ding;ding=()=>{ding0();if(SET.stk!==0)sticker()};
+function rew(){const ms=t=>PR.m[L.findIndex(l=>l.t.includes(t))]>=80;const n=Object.keys(PR.m).filter(k=>PR.m[k]>=80).length,st=PR.st||{};
+const B=[['🥉','مبتدئ: ٢٠ نجمة',stars>=20],['🥈','نشيط: ١٠٠ نجمة',stars>=100],['🥇','بطل: ٣٠٠ نجمة',stars>=300],['⬆️','حرّاك الفتحة',ms('بالفتح')],['➡️','ملك الضمة',ms('بالضم')],['⬇️','سلطان الكسرة',ms('بالكسر')],['📖','قارئ: ٥ دروس',n>=5],['🏆','بطل القراءة: ١٠ دروس',n>=10],['✍️','كاتب: ١٠ كلمات إملاء',(PR.w||0)>=10],['🎨','رسّام: ١٠ حروف',(PR.t||0)>=10]];
+app.innerHTML=tb()+`<h2>🏅 أوسمتي</h2><div class="tiles">${B.map(b=>`<div class="tile" style="opacity:${b[2]?1:.35}"><div class="em">${b[2]?b[0]:'🔒'}</div><small>${b[1]}</small></div>`).join('')}</div><h2>🎁 ستيكراتي (${Object.keys(st).length}/${SK.length})</h2><div class="tiles" style="grid-template-columns:repeat(4,1fr)">${SK.map(s=>`<div class="tile" style="opacity:${st[s]?1:.25};padding:4px"><div class="em">${s}</div><small>${st[s]?'×'+st[s]:'؟'}</small></div>`).join('')}</div><p class="c">كل إجابة صحيحة = ستيكر 🎉</p>`}
+const cls=w=>w.match(/[\u0621-\u064A][\u064B-\u0652]*/g)||[w];
+const pool=()=>[...new Map(L.flatMap(l=>l.k).filter(c=>c[1]&&!/\s/.test(c[0])&&cls(c[0]).length>=2&&cls(c[0]).length<=5).map(c=>[c[0],c])).values()];
+function writing(){app.innerHTML=tb()+`<h2>✍️ الكتابة والإملاء</h2><div class="opts"><button class="opt" onclick="trace('ا')">🎨 تتبّع الحروف والمقاطع</button><button class="opt" onclick="dict()">🔤 إملاء: رتّب الحروف</button><button class="opt" onclick="miss()">❓ أكمل الحرف الناقص</button></div>`}
+let DW,DI,DB,DP;
+function dict(){DW=sh(pool()).slice(0,5);DI=0;dstep()}
+function dstep(){if(DI>=DW.length){stars+=3;save();return app.innerHTML=tb()+`<h1>🎉 أحسنت!</h1><p class="c">كتبت ${DW.length} كلمات (+٣ ⭐)</p><button class="go" onclick="dict()">إملاء جديد 🔁</button><button class="go" onclick="writing()">رجوع</button>`}
+const w=DW[DI][0];DB=cls(w);DP=0;
+app.innerHTML=tb()+`<div class="pg">كلمة ${DI+1} من ${DW.length}</div><h2>اسمع ثم رتّب الحروف</h2><div class="bigq" onclick="sp('${w}')">${DW[DI][1]} 🔊</div><div id="bd" class="bigq" style="min-height:90px"></div><div class="tiles" style="grid-template-columns:repeat(auto-fill,minmax(70px,1fr))">${sh(DB).map(x=>`<button class="tile" style="font-size:34px;font-weight:800" onclick="dtap(this)">${x}</button>`).join('')}</div>`;sp(w)}
+function dtap(b){if(b.textContent==DB[DP]){b.disabled=true;b.style.opacity=.3;DP++;document.getElementById('bd').textContent=DB.slice(0,DP).join('');beep(600,.1);
+if(DP==DB.length){ding();PR.w=(PR.w||0)+1;save();setTimeout(()=>{DI++;dstep()},1300)}}else{buzz();b.classList.add('no');setTimeout(()=>b.classList.remove('no'),400)}}
+function miss(){ST=null;const all=[...new Set(pool().flatMap(c=>cls(c[0])))];
+qrun(sh(pool()).slice(0,6).map(c=>{const a=cls(c[0]),j=Math.floor(Math.random()*a.length);return{q:`${c[1]} أكمل الحرف الناقص:<br>${a.map((x,k)=>k==j?'❓':x).join(' ')}`,o:[a[j],...sh(all.filter(x=>x!=a[j])).slice(0,2)]}}),()=>{stars+=3;save();writing()})}
+function trace(l){sp(l);
+const row=a=>`<div style="display:grid;grid-template-columns:repeat(${a.length>9?7:a.length>5?5:3},1fr);gap:6px;margin:6px 0">${a.map(x=>`<button class="sm" style="${x==l?'border-color:var(--acc);':''}font-size:20px" onclick="trace('${x}')">${x}</button>`).join('')}</div>`;
+app.innerHTML=tb()+`<h2>🎨 تتبّع بإصبعك</h2>${row([...'ابتثجحخدذرزسشصضطظعغفقكلمنهوي'])}${row(['بَ','سُ','مِ','بَا','نُو','سِي','بَاب','كَتَبَ','شَرِبَ'])}<canvas id="cv" width="300" height="300" style="width:100%;max-width:320px;display:block;margin:8px auto;background:var(--card);border:3px dashed var(--acc);border-radius:20px;touch-action:none"></canvas><p id="tm" class="c">ابدأ من النقطة الخضراء 🟢 وتتبّع الشكل</p><button class="go" style="display:inline-block;margin:6px" id="ck">تحقّق ✅</button><button class="go" style="display:inline-block;margin:6px;background:var(--card);color:var(--fg);border:2px solid var(--line)" onclick="trace('${l}')">امسح 🧽</button>`;
+const c=document.getElementById('cv'),x=c.getContext('2d'),n=cls(l).length,fs=n<2?230:n<3?170:n<4?130:100;
+const mk=()=>{const o=document.createElement('canvas');o.width=o.height=300;return o},g=mk(),k=mk(),gx=g.getContext('2d'),kx=k.getContext('2d');
+[x,gx].forEach(q=>{q.font=`800 ${fs}px Cairo,sans-serif`;q.textAlign='center';q.textBaseline='middle'});
+gx.fillText(l,150,160);x.fillStyle='rgba(150,150,150,.35)';x.fillText(l,150,160);
+const md=gx.getImageData(0,0,300,300).data;let best=1e9,sx=150,sy=150;
+for(let y=0;y<300;y++)for(let z=0;z<300;z++)if(md[(y*300+z)*4+3]>100){const v=y-.3*z;if(v<best){best=v;sx=z;sy=y}}
+x.fillStyle='#2fb55a';x.beginPath();x.arc(sx,sy,11,0,7);x.fill();
+[x,kx].forEach(q=>{q.lineWidth=22;q.lineCap=q.lineJoin='round';q.strokeStyle='#6c5ce7'});
+let d=0;const P=e=>{const r=c.getBoundingClientRect();return[(e.clientX-r.left)*300/r.width,(e.clientY-r.top)*300/r.height]};
+c.onpointerdown=e=>{d=1;const[a,b]=P(e);[x,kx].forEach(q=>{q.beginPath();q.moveTo(a,b);q.lineTo(a+.1,b);q.stroke()})};
+c.onpointermove=e=>{if(!d)return;const[a,b]=P(e);[x,kx].forEach(q=>{q.lineTo(a,b);q.stroke()})};
+c.onpointerup=c.onpointerleave=()=>d=0;
+document.getElementById('ck').onclick=()=>{const m=md,i=kx.getImageData(0,0,300,300).data;let T=0,C=0,I=0,S=0;
+for(let p=3;p<m.length;p+=4){const a=m[p]>100,b=i[p]>100;if(a){T++;if(b)C++}if(b){I++;if(!a)S++}}
+const cov=C/T,st=I?S/I:1,tm=document.getElementById('tm');
+if(cov>.45&&st<.55){ding();PR.t=(PR.t||0)+1;save();tm.textContent='✅ ممتاز! كتبته صح 🎉'}
+else{buzz();tm.textContent=I<50?'ارسم بإصبعك فوق الشكل أولاً ✏️':cov<=.45?'غطّي الشكل كله بإصبعك، حاول تاني 💪':'ابقَ فوق الشكل ولا تخرج عنه، حاول تاني 💪'}}}
+
+(function(){
+const mig=(at,n)=>{if(PR.v)return;['m','b'].forEach(f=>{const o={};Object.keys(PR[f]).forEach(k=>{k=+k;o[k>=at?k+n:k]=PR[f][k]});PR[f]=o});PR.d.forEach(x=>{if(x.i>=at)x.i+=n})};
+const W=(a,n)=>a.map(x=>[x[0],x[1],n]);
+const mk=(t,i,c,h,k,x)=>{const w=k.filter(a=>a[1]),q=[];
+sh(w).slice(0,4).forEach(a=>q.push({q:"أيّ كلمة تناسب الصورة؟",b:a[1],o:[a[0],...sh(w.filter(y=>y!==a)).slice(0,2).map(y=>y[0])]}));
+sh(w).slice(0,1).forEach(a=>q.push({q:"اقرأ واختر الصورة:",b:a[0],o:[a[1],...sh(w.filter(y=>y!==a)).slice(0,2).map(y=>y[1])]}));
+return{t,i,c,h,k,q:q.concat(x),m:sh(w).slice(0,5).map(a=>[a[0],a[1]])}};
+const tq=(k,txt,A,B)=>sh(k).slice(0,8).map(a=>({q:`${txt} «${a[0]}»؟`,b:a[1],o:a[2]==A?[A,B]:[B,A]}));
+// الحركات القصيرة بتعمّق
+const LT=['ك','ل','ر','د','ح','ع','ق','ن','ز','ج'],MK=['\u064E','\u064F','\u0650'],NM=['فتحة','ضمة','كسرة'];
+const kA=LT.flatMap(l=>MK.map((m,j)=>[l+m,'',NM[j]]));
+const qA=sh(kA).slice(0,5).map(a=>({q:"ما حركة هذا الحرف؟",b:a[0],o:[a[2],...NM.filter(n=>n!=a[2])]}));
+for(let z=0;z<3;z++){const l=LT[Math.floor(Math.random()*LT.length)];qA.push({q:`أيّ حرف عليه ${NM[z]}؟`,o:[l+MK[z],...MK.filter((_,y)=>y!=z).map(m=>l+m)]})}
+const A={t:"الحركات القصيرة بتعمّق",i:"🔡",c:"#e5484d",h:"<b>الحركات القصيرة ثلاث:</b> فَتْحة فوق الحرف، ضَمّة فوقه (واو صغيرة)، كَسْرة تحته. تُنطق بسرعة <b>بدون مدّ</b> (حركة واحدة). هنا تتدرّب مع ١٠ حروف مختلفة. <b>حركة:</b> فتحة يدك فوق ⬆️ ضمة قدّام ➡️ كسرة تحت ⬇️. اقرأ كل صف ٣ مرات!",k:kA,q:qA,m:[["كَ","فتحة"],["لُ","ضمة"],["رِ","كسرة"]]};
+// المدود بالتفصيل
+const B=mk("المدود بالتفصيل (قصير أم طويل؟)","🔊","#f5a623","<b>القصيرة</b> نقرأها بحركة واحدة: بَ بُ بِ. <b>الطويلة (المدّ)</b> نمدّها <b>حركتين</b>: بَا بُو بِي. حروف المدّ ثلاثة: <b>ا و ي</b> بعد الحركة المناسبة: ألف بعد فتحة، واو بعد ضمة، ياء بعد كسرة. <b>حركة:</b> قصير = نقرة بإصبعك 👆 | طويل = اسحب ذراعك ببطء 🙆",
+[["بَ","","قصير: حركة"],["بَا","","طويل: حركتان (ألف)"],["بُ","","قصير: حركة"],["بُو","","طويل: حركتان (واو)"],["بِ","","قصير: حركة"],["بِي","","طويل: حركتان (ياء)"],["بَاب","🚪","مدّ بالألف"],["مَاء","💧","مدّ بالألف"],["نَار","🔥","مدّ بالألف"],["نُور","💡","مدّ بالواو"],["ثُوم","🧄","مدّ بالواو"],["فُول","🫘","مدّ بالواو"],["فِيل","🐘","مدّ بالياء"],["تِين","🍈","مدّ بالياء"]],
+[{q:"كم حركة نمدّ في حرف المدّ؟",o:["حركتين","حركة واحدة","ست حركات"]},{q:"أيّ كلمة فيها مدّ بالياء؟",o:["فِيل","فَرَس","نُور"]},{q:"أيّ كلمة فيها مدّ بالواو؟",o:["نُور","نَار","تِين"]},{q:"أيّ كلمة فيها مدّ بالألف؟",o:["نَار","نُور","تِين"]}]);
+// التاء
+const tm=W([["قِطَّة","🐱"],["شَجَرَة","🌳"],["مَدْرَسَة","🏫"],["بَقَرَة","🐄"],["سَيَّارَة","🚗"],["طَائِرَة","✈️"],["وَرْدَة","🌹"],["تُفَّاحَة","🍎"],["مَلْعَقَة","🥄"],["حَقِيبَة","🎒"]],"مربوطة ـة");
+const tf=W([["بَيْت","🏠"],["بِنْت","👧"],["حُوت","🐋"],["صَوْت","🔊"],["وَقْت","⏰"],["زَيْت","🛢️"],["عَنْكَبُوت","🕷️"]],"مفتوحة ـت");
+const T1=mk("التاء المربوطة (ـة)","🎀","#e5484d","<b>التاء المربوطة ـة</b> تأتي في آخر الاسم، وغالباً للمؤنث. شكلها دائرة فوقها نقطتان. <b>عند الوقف عليها ننطقها هاءً:</b> قِطَّه. وفي الوسط تبقى تاءً: قِطَّةٌ جَمِيلَةٌ. <b>حركة:</b> أقف وأفتح يدي عند النطق بالهاء 🖐️",tm,[{q:"أيّ كلمة فيها تاء مربوطة؟",o:["شَجَرَة","بَيْت","زَيْت"]},{q:"عند الوقف على التاء المربوطة ننطق:",o:["هاء","تاء","ألف"]},{q:"التاء المربوطة تأتي غالباً في آخر:",o:["الاسم المؤنث","الفعل","الحرف"]}]);
+const T2=mk("التاء المفتوحة (ـت)","🔓","#2fb55a","<b>التاء المفتوحة ـت</b> ننطقها <b>تاءً دائماً</b>، حتى عند الوقف: بَيْت. تأتي في آخر أسماء مثل بَيْت وصَوْت، وفي آخر بعض الأفعال: كَتَبَتْ. <b>حركة:</b> أضرب بإصبعي على الطاولة نقرة عند التاء 👆",tf,[{q:"أيّ كلمة فيها تاء مفتوحة؟",o:["بَيْت","قِطَّة","شَجَرَة"]},{q:"التاء المفتوحة ننطقها دائماً:",o:["تاء","هاء","ألف"]},{q:"أيّ كلمة تنتهي بـ ـت؟",o:["حُوت","وَرْدَة","سَيَّارَة"]}]);
+const tmix=sh(tm.concat(tf).map(a=>[a[0],a[1],a[2].startsWith('مربوطة')?'مربوطة':'مفتوحة']));
+const T3={t:"تاء مربوطة أم مفتوحة؟",i:"🧩",c:"#6c5ce7",h:"<b>تحدّي التمييز!</b> انظر لآخر الكلمة: <b>ـة</b> (دائرة ونقطتان) = مربوطة، تُنطق هاءً عند الوقف. <b>ـت</b> (تاء ممدودة) = مفتوحة، تُنطق تاءً.",k:tmix,q:tq(tmix,"ما نوع التاء في","مربوطة","مفتوحة"),m:tmix.slice(0,5).map(a=>[a[0],a[1]])};
+// اللام
+const qm=W([["الْقَمَرُ","🌙"],["الْبَيْتُ","🏠"],["الْكِتَابُ","📕"],["الْوَلَدُ","👦"],["الْجَمَلُ","🐫"],["الْفِيلُ","🐘"],["الْعِنَبُ","🍇"],["الْبَحْرُ","🌊"],["الْمَاءُ","💧"],["الْكَلْبُ","🐶"],["الْحِصَانُ","🐴"],["الْوَرْدُ","🌹"]],"قمرية: اللام تُنطق");
+const sm=W([["الشَّمْسُ","☀️"],["الشَّجَرَةُ","🌳"],["الرَّجُلُ","👨"],["الدِّيكُ","🐓"],["النَّجْمُ","⭐"],["السَّمَكُ","🐟"],["الثَّلْجُ","❄️"],["التُّفَّاحُ","🍎"],["الطِّفْلُ","👶"],["الذِّئْبُ","🐺"],["الزَّهْرَةُ","🌸"]],"شمسية: اللام لا تُنطق والحرف مشدّد");
+const SH="ت ث د ذ ر ز س ش ص ض ط ظ ل ن",QM="أ ب ج ح خ ع غ ف ق ك م ه و ي";
+const R="<br>الشمسية: "+SH+"<br>القمرية: "+QM+"<br><small>خدعة: كل حرف في كلمة «الشمس» أول حرفها شمسي. حركة: قمرية = أفتح يدي 🌙 | شمسية = أغلق يدي ☀️</small>";
+const L1=mk("اللام القمرية","🌙","#00a3bf","<b>اللام القمرية:</b> ننطق اللام بوضوح: الْ-قَمَر. وعليها سكون. تأتي قبل ١٤ حرفاً (القمرية)."+R,qm,[{q:"أيّ حرف من الحروف القمرية؟",o:["ب","ش","ر"]},{q:"في «الْقَمَرُ» اللام:",o:["تُنطق","لا تُنطق"]},{q:"أيّ كلمة لامها قمرية؟",o:["الْبَيْتُ","الشَّمْسُ","الرَّجُلُ"]}]);
+const L2=mk("اللام الشمسية","☀️","#f5a623","<b>اللام الشمسية:</b> لا ننطق اللام، ونشدّد الحرف بعدها: اشْ-شَمْس. لا يوجد سكون على اللام، ويوجد شدّة على الحرف بعدها. تأتي قبل ١٤ حرفاً (الشمسية)."+R,sm,[{q:"أيّ حرف من الحروف الشمسية؟",o:["س","ب","ج"]},{q:"في «الشَّمْسُ» اللام:",o:["لا تُنطق","تُنطق"]},{q:"الحرف بعد اللام الشمسية يُنطق:",o:["مشدّداً","ساكناً","مكسوراً"]}]);
+const lm=sh(qm.concat(sm).map(a=>[a[0],a[1],a[2].startsWith('قمرية')?'قمرية':'شمسية']));
+const L3={t:"شمسية أم قمرية؟",i:"🌗",c:"#6c5ce7",h:"<b>تحدّي التمييز!</b> إن رأيت <b>شدّة</b> على الحرف بعد «ال» فهي شمسية. وإن رأيت <b>سكوناً</b> على اللام فهي قمرية."+R,k:lm,q:tq(lm,"ما نوع اللام في","شمسية","قمرية"),m:lm.slice(0,5).map(a=>[a[0],a[1]])};
+const i1=L.findIndex(l=>l.t.startsWith("الحركات الطويلة"))+1;mig(i1,2);L.splice(i1,0,A,B);
+const i2=L.findIndex(l=>l.t.startsWith("السكون"))+1;mig(i2,6);L.splice(i2,0,T1,T2,T3,L1,L2,L3);
+PR.v=2;save();
+})();
+
+document.head.insertAdjacentHTML('beforeend','<style>.in{width:100%;padding:10px;font:inherit;font-size:20px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--fg);margin:6px 0}table{width:100%;border-collapse:collapse;font-size:15px}td,th{border-bottom:1px solid var(--line);padding:4px;text-align:right}@media print{.np,.bar{display:none!important}body{background:#fff;color:#000}}</style>');
+var KEY=null,CUR=null,TXT='';
+const esc=s=>String(s).replace(/[<>&"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const gS=()=>{try{return JSON.parse(localStorage.getItem('arStudents'))||[]}catch(e){return[]}};
+const sS=a=>{try{localStorage.setItem('arStudents',JSON.stringify(a))}catch(e){}};
+function save(){if(!KEY)return;PR.s=stars;try{localStorage.setItem(KEY,JSON.stringify(PR))}catch(e){}}
+function welcome(){KEY=null;CUR=null;const S=gS();
+app.innerHTML=`<h1>📚 أَتَعَلَّمُ الْقِرَاءَة</h1><p class="c">👨‍🏫 المعلم: <b>${esc(SET.tn)}</b></p>${S.length?`<h2>من سيتعلّم اليوم؟</h2><div class="opts">${S.map(s=>`<button class="opt" onclick="pickS('${s.id}')">👦 ${esc(s.name)} <small>${GR(s)?'('+esc(GR(s))+')':''}</small></button>`).join('')}</div>`:''}<div class="box"><b>➕ طالب جديد</b><input id="sn" class="in" placeholder="اسم الطالب"><select id="sa" class="in"><option value="">اختر الصف</option><option>رياض أطفال (KG1)</option><option>رياض أطفال (KG2)</option><option>الصف الأول</option><option>الصف الثاني</option><option>الصف الثالث</option><option>الصف الرابع</option><option>الصف الخامس</option><option>الصف السادس</option></select><button class="go" onclick="addS()">ابدأ التعلّم 🚀</button></div><button class="sm" onclick="settings()">⚙️ الإعدادات</button>`}
+function pickS(id){CUR=gS().find(s=>s.id==id);if(!CUR)return;KEY='arPR_'+id;let p;try{p=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+PR=Object.assign({m:{},b:{},e:{},d:[],u:0,s:0,a:{},l:[],ok:0,no:0,sec:0,days:[],st:{},v:2},p||{});stars=PR.s||0;home()}
+function addS(){const n=document.getElementById('sn').value.trim(),a=document.getElementById('sa').value;if(!n)return note('اكتب اسم الطالب أولاً');
+const S=gS(),id='s'+Date.now();S.push({id,name:n,grade:a,created:Date.now()});sS(S);pickS(id)}
+setInterval(()=>{if(!KEY||document.hidden)return;PR.sec=(PR.sec||0)+10;const d=new Date().toISOString().slice(0,10);if(!PR.days.includes(d))PR.days.push(d);save()},10000);
+const pick0=pick;pick=function(b){if(KEY){if(b.dataset.ok=='true')PR.ok++;else PR.no++}pick0(b)};
+function play(i){const l=L[i];ST={w:0,n:l.q.length};
+qrun(sh(l.q),()=>{const p=Math.round(100*(1-ST.w/ST.n));PR.b[i]=Math.max(PR.b[i]||0,p);PR.a[i]=(PR.a[i]||0)+1;PR.l.push({t:Date.now(),i:l.t,p});if(PR.l.length>300)PR.l.shift();save();
+if(p>=SET.thr){PR.m[i]=Math.max(p,80);save();mrun(l.m||l.k.filter(c=>c[1]).slice(0,5).map(c=>[c[0],c[1]]),()=>win(i))}
+else app.innerHTML=tb()+`<h1>💪 قَرَّبْتَ!</h1><p class="c">نسبتك ${p}% ونحتاج ${SET.thr}٪ للانتقال.<br>أعد الدرس وحاول مرة ثانية.</p><button class="go" onclick="learn(${i})">أعيد الدرس 🔁</button>`})}
+function cp(){try{navigator.clipboard.writeText(TXT);note('✅ تم نسخ التقرير')}catch(e){note('تعذّر النسخ')}}
+function dash(){const n=Object.keys(PR.m).filter(k=>PR.m[k]>=80).length,tot=L.length,acc=PR.ok+PR.no?Math.round(100*PR.ok/(PR.ok+PR.no)):0,fr=n/tot,
+lv=fr<.15?'مبتدئ 🌱':fr<.4?'أساسي 🌿':fr<.7?'متوسط 🌳':fr<1?'متقدم ⭐':'متميز 🏆',
+e=Object.entries(PR.e).sort((a,b)=>b[1]-a[1]).slice(0,10),la=L.map((l,i)=>[l.t,PR.b[i]]),wk=la.filter(x=>x[1]!=null&&x[1]<80),sg=la.filter(x=>x[1]>=90),
+dt=t=>new Date(t).toLocaleDateString('ar-EG'),mn=Math.round((PR.sec||0)/60),ns=Object.keys(PR.st||{}).length;
+TXT=`تقرير الطالب: ${CUR.name} (${GR(CUR)||'—'})\nالمعلم: ${esc(SET.tn)}\nتاريخ التقرير: ${dt(Date.now())}\nالمستوى: ${lv}\nالدروس المتقنة: ${n} من ${tot}\nالحروف المتقنة: ${LCN()} من 28\nدقة الإجابات: ${acc}%\nأيام الدراسة: ${PR.days.length} | وقت الدراسة: ${mn} دقيقة\nنقاط القوة: ${sg.map(x=>x[0]).join('، ')||'—'}\nتحتاج مراجعة: ${wk.map(x=>x[0]).join('، ')||'—'}\nأكثر الأخطاء: ${e.slice(0,5).map(x=>x[0]).join(' | ')||'—'}`;
+app.innerHTML=tb()+`<h2>📊 تقرير الطالب</h2><div class="box"><b>👦 ${esc(CUR.name)}</b> — ${esc(GR(CUR))}<br>👨‍🏫 المعلم: ${esc(SET.tn)}<br>📅 بدأ: ${dt(CUR.created)} | التقرير: ${dt(Date.now())}</div>
+<div class="box">🎯 المستوى: <b>${lv}</b><br>🔤 حروف متقنة: <b>${LCN()}</b> من 28<br>✅ دروس متقنة: <b>${n}</b> من ${tot}<br>🎯 دقة الإجابات: <b>${acc}%</b> (${PR.ok||0} صح / ${PR.no||0} خطأ)<br>🗓️ أيام الدراسة: <b>${PR.days.length}</b> | ⏱️ الوقت: <b>${mn}</b> دقيقة<br>⭐ النجوم: ${stars} | 🎁 ستيكرات: ${ns}/${SK.length}</div>
+<h3>📚 تفاصيل الدروس</h3><div class="box"><table><tr><th>الدرس</th><th>أفضل نسبة</th><th>محاولات</th><th></th></tr>${L.map((l,i)=>`<tr><td>${i+1}. ${l.t}</td><td>${PR.b[i]!=null?PR.b[i]+'%':'—'}</td><td>${PR.a[i]||0}</td><td>${PR.m[i]>=80?'✅':PR.b[i]!=null?'🔄':''}</td></tr>`).join('')}</table></div>
+<h3>🎯 أكثر الأخطاء</h3><div class="box">${e.length?e.map(x=>`${x[0]} (${x[1]}×)`).join('<br>'):'لا أخطاء بعد 👏'}</div>
+<h3>💪 نقاط القوة</h3><div class="box">${sg.length?sg.map(x=>x[0]).join('<br>'):'—'}</div>
+<h3>🔄 تحتاج مراجعة</h3><div class="box">${wk.length?wk.map(x=>x[0]+' ('+x[1]+'%)').join('<br>'):'لا شيء 👏'}</div>
+<h3>🕒 آخر النشاطات</h3><div class="box">${PR.l.length?PR.l.slice(-8).reverse().map(x=>`${dt(x.t)}: ${x.i} — ${x.p}%`).join('<br>'):'—'}</div>
+<div class="np"><button class="go" onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button class="go" onclick="cp()">📋 نسخ التقرير</button><button class="go" onclick="PR.u=PR.u?0:1;save();dash()">${PR.u?'قفل الدروس بالترتيب 🔒':'فتح كل الدروس 🔓'}</button><button class="go" style="background:var(--no)" onclick="if(window.cf){PR={m:{},b:{},e:{},d:[],u:0,s:0,a:{},l:[],ok:0,no:0,sec:0,days:[],st:{},v:2};stars=0;save();window.cf=0;dash()}else{window.cf=1;this.textContent='اضغط مرة أخرى لمسح تقدّم هذا الطالب'}">مسح تقدّم الطالب</button><button class="go" style="background:var(--card);color:var(--fg);border:2px solid var(--line)" onclick="if(window.cd){localStorage.removeItem(KEY);sS(gS().filter(s=>s.id!=CUR.id));window.cd=0;welcome()}else{window.cd=1;this.textContent='اضغط مرة أخرى لحذف الطالب نهائياً'}">حذف الطالب 🗑️</button></div>`}
+
+const GR=s=>s.grade||(s.age?s.age+' سنة':'');
+const LW=`ا|ألف|أَرْنَب,🐰;أَسَد,🦁;أُذُن,👂
+ب|باء|بَطَّة,🦆;بَقَرَة,🐄;بَيْت,🏠
+ت|تاء|تُفَّاح,🍎;تِمْسَاح,🐊;تَاج,👑
+ث|ثاء|ثَعْلَب,🦊;ثُوم,🧄;ثَلْج,❄️
+ج|جيم|جَمَل,🐫;جَزَر,🥕;جَبَل,⛰️
+ح|حاء|حِصَان,🐴;حُوت,🐋;حَلِيب,🥛
+خ|خاء|خَرُوف,🐑;خُبْز,🍞;خَيْمَة,⛺
+د|دال|دَجَاجَة,🐔;دُبّ,🐻;دَرَّاجَة,🚲
+ذ|ذال|ذُرَة,🌽;ذِئْب,🐺;ذَهَب,🥇
+ر|راء|رَجُل,👨;رَسْم,🎨;رِيشَة,🪶
+ز|زاي|زَهْرَة,🌸;زَرَافَة,🦒;زَيْتُون,🫒
+س|سين|سَمَك,🐟;سَاعَة,⏰;سُلَّم,🪜
+ش|شين|شَمْس,☀️;شَجَرَة,🌳;شَمْعَة,🕯️
+ص|صاد|صَابُون,🧼;صَقْر,🦅;صُورَة,🖼️
+ض|ضاد|ضِفْدَع,🐸;ضَوْء,💡;ضِرْس,🦷
+ط|طاء|طَائِرَة,✈️;طَاوُوس,🦚;طِفْل,👶
+ظ|ظاء|ظَرْف,✉️;ظُفْر,💅;ظَبْي,🦌
+ع|عين|عِنَب,🍇;عُصْفُور,🐦;عَلَم,🚩
+غ|غين|غُرَاب,🐦‍⬛;غَيْمَة,☁️;غَابَة,🌲
+ف|فاء|فِيل,🐘;فَرَاشَة,🦋;فُول,🫘
+ق|قاف|قَمَر,🌙;قِطَّة,🐱;قَلَم,✏️
+ك|كاف|كِتَاب,📕;كُرَة,⚽;كَلْب,🐶
+ل|لام|لَيْمُون,🍋;لُعْبَة,🧸;لِسَان,👅
+م|ميم|مَاء,💧;مَدْرَسَة,🏫;مِفْتَاح,🔑
+ن|نون|نَجْمَة,⭐;نَمْلَة,🐜;نَار,🔥
+ه|هاء|هَاتِف,📱;هَدِيَّة,🎁;هَوَاء,🌬️
+و|واو|وَرْدَة,🌹;وَلَد,👦;وَرَقَة,🍃
+ي|ياء|يَد,✋;يَمَامَة,🕊️;يَخْت,🛥️`.split('\n').map(r=>{const p=r.split('|');return[p[0],p[1],p[2].split(';').map(x=>x.split(','))]});
+const LCN=()=>Object.keys(PR.lt||{}).filter(k=>PR.lt[k]>=80).length;
+const LC=()=>`<br><small>(${LCN()}/28 ✅)</small>`;
+function letters(){PR.lt=PR.lt||{};
+app.innerHTML=tb()+`<h2>🔤 تعلّم الحروف</h2><p class="c">اضغط على حرف لتتعرّف عليه وتكتبه وتتعلّم كلمات تبدأ به (${LCN()}/28 ✅)</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${LW.map((x,i)=>`<button class="tile" style="font-size:38px;font-weight:800;${PR.lt[x[0]]>=80?'border-color:var(--ok)':''}" onclick="letter(${i})">${x[0]}${PR.lt[x[0]]>=80?'<small>✅</small>':''}</button>`).join('')}</div><button class="go" onclick="lch()">🏆 تحدّي الحروف</button>`}
+function letter(i){PR.lt=PR.lt||{};const[l,nm,w]=LW[i],NC='ادذرزو'.includes(l),F=[['منفصل',l]];
+if(!NC)F.push(['أول الكلمة',l+'ـ'],['وسط الكلمة','ـ'+l+'ـ']);F.push(['آخر الكلمة','ـ'+l]);
+const sw=w.map(a=>a[0]).filter(x=>cls(x).length<=4).sort((p,q)=>cls(p).length-cls(q).length)[0];
+app.innerHTML=tb()+`<h2>الحرف: ${nm}</h2><div class="bigq" style="font-size:110px" onclick="sp('${nm}')">${l}</div><p class="c"><button class="sm" onclick="sp('${nm}')">🔊 اسمع</button> <button class="sm" onclick="rec('${nm}',this)">${REC[nm]?'🎙️✅':'🎙️ سجّل صوتك'}</button></p>
+<h3>أشكال الحرف</h3><div class="tiles">${F.map(f=>`<div class="tile"><div class="big">${f[1]}</div><small>${f[0]}</small></div>`).join('')}</div>
+<h3>كلمات تبدأ بحرف ${l}</h3><div class="tiles">${w.map(a=>`<button class="tile" onclick="sp('${a[0]}')"><div class="em">${a[1]}</div><div class="big" style="font-size:30px">${a[0]}</div></button>`).join('')}</div>
+<button class="go" onclick="trace('${l}')">✍️ اكتب الحرف</button>${sw?`<button class="go" onclick="trace('${sw}')">✍️ اكتب كلمة: ${sw}</button>`:''}<button class="go" onclick="lquiz(${i})">🎮 اختبرني</button><button class="go" style="background:var(--card);color:var(--fg);border:2px solid var(--line)" onclick="letters()">كل الحروف 🔤</button>`;sp(nm)}
+function lqs(i){const[l,nm,w]=LW[i],o=()=>sh(LW.filter((_,j)=>j!=i));
+return[{q:"ما اسم هذا الحرف؟",b:l,o:[nm,...o().slice(0,2).map(x=>x[1])]},
+{q:`أيّ كلمة تبدأ بحرف ${l}؟`,o:[w[0][0],...o().slice(0,2).map(x=>x[2][0][0])]},
+{q:"بأيّ حرف تبدأ هذه الكلمة؟",b:w[1][1],o:[l,...o().slice(0,2).map(x=>x[0])]},
+{q:`أيّ صورة اسمها يبدأ بحرف ${l}؟`,o:[w[2][1],...o().slice(0,2).map(x=>x[2][0][1])]},
+{q:"اقرأ الكلمة واختر الصورة:",b:w[0][0],o:[w[0][1],...o().slice(0,2).map(x=>x[2][1][1])]}]}
+function lquiz(i){ST={w:0,n:5};qrun(lqs(i),()=>{const p=Math.round(100*(1-ST.w/5)),l=LW[i][0];PR.lt[l]=Math.max(PR.lt[l]||0,p>=SET.thr?Math.max(p,80):p);save();
+app.innerHTML=tb()+(p>=SET.thr?`<h1>🎉 أحسنت!</h1><p class="c">أتقنت حرف ${l} (${p}%)</p><button class="go" onclick="letter(${(i+1)%28})">الحرف التالي ⬅️</button>`:`<h1>💪 قرّبت</h1><p class="c">نسبتك ${p}% ونحتاج ${SET.thr}٪</p><button class="go" onclick="letter(${i})">أعد الحرف 🔁</button>`)+`<button class="go" onclick="letters()">كل الحروف 🔤</button>`})}
+function lch(){ST=null;qrun(sh(LW.flatMap((_,i)=>lqs(i))).slice(0,10),()=>{stars+=5;save();letters()})}
+
+var SET=Object.assign({fx:1,voice:1,rate:.7,stk:1,theme:'auto',fs:1,thr:80,tn:'أحمد عبد الفتاح',pal:'default'},(()=>{try{return JSON.parse(localStorage.getItem('arSet'))||{}}catch(e){return{}}})());
+
+const PALS=[
+['default','🌈 الأساسي',null],
+['pink','🌸 وردي',{acc:'#e84393',bg:'#fff0f6',card:'#ffffff',line:'#f6cfe0',dbg:'#2a1522',dcard:'#3a1f30',dline:'#5e3350'}],
+['ocean','🌊 أزرق',{acc:'#0984e3',bg:'#eaf6ff',card:'#ffffff',line:'#c4e0f5',dbg:'#10212f',dcard:'#193349',dline:'#2b4d6b'}],
+['forest','🌿 أخضر',{acc:'#2fb55a',bg:'#effaf0',card:'#ffffff',line:'#cbe9d0',dbg:'#14261a',dcard:'#1d3626',dline:'#2f5740'}],
+['sunset','🌅 برتقالي',{acc:'#f5842a',bg:'#fff3e6',card:'#ffffff',line:'#f5d9bb',dbg:'#2b1d12',dcard:'#3b2a1b',dline:'#5f452c'}],
+['lilac','🔮 بنفسجي',{acc:'#8e5be8',bg:'#f5efff',card:'#ffffff',line:'#dccbf7',dbg:'#1f1730',dcard:'#2c2145',dline:'#46376b'}],
+['mint','🍃 نعناعي',{acc:'#00a3a3',bg:'#e9fbfa',card:'#ffffff',line:'#bfe9e6',dbg:'#0f2626',dcard:'#173838',dline:'#2a5959'}]];
+function applyPal(){const r=document.documentElement,s=r.style,P=(PALS.find(x=>x[0]==SET.pal)||PALS[0])[2];
+['--acc','--bg','--card','--line'].forEach(k=>s.removeProperty(k));if(!P)return;
+const dk=SET.theme=='dark'||(SET.theme=='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+s.setProperty('--acc',P.acc);s.setProperty('--bg',dk?P.dbg:P.bg);s.setProperty('--card',dk?P.dcard:P.card);s.setProperty('--line',dk?P.dline:P.line)}
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(SET.theme=='auto')applyPal()})}catch(e){}
+function applySet(){const r=document.documentElement;if(SET.theme=='auto')delete r.dataset.theme;else r.dataset.theme=SET.theme;applyPal();document.body.style.fontSize=['16px','18px','22px'][SET.fs];try{localStorage.setItem('arSet',JSON.stringify(SET))}catch(e){}}
+document.head.insertAdjacentHTML('beforeend','<style>body{background:radial-gradient(circle at 15% 0,rgba(255,190,60,.28),transparent 40%),radial-gradient(circle at 95% 8%,rgba(108,92,231,.22),transparent 38%),var(--bg);background-attachment:fixed}h1{background:linear-gradient(90deg,#e5484d,#6c5ce7);-webkit-background-clip:text;background-clip:text;color:transparent}.card{box-shadow:0 5px 0 rgba(0,0,0,.13);transition:transform .1s}.tile,.opt{box-shadow:0 3px 0 rgba(0,0,0,.1)}button:active{transform:translateY(2px) scale(.98)}.go{background:linear-gradient(135deg,#6c5ce7,#8e7dff);box-shadow:0 5px 0 rgba(0,0,0,.2)}.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 4px;border-radius:0 0 14px 14px}.box{box-shadow:0 3px 0 rgba(0,0,0,.06)}@keyframes rise{to{transform:translateY(-470px)}}</style>');
+const seg=(k,o)=>o.map(a=>`<button class="sm" style="${SET[k]===a[0]?'border-color:var(--acc);background:#6c5ce733;':''}margin:2px" onclick="st('${k}',${typeof a[0]=='string'?`'${a[0]}'`:a[0]})">${a[1]}</button>`).join('');
+function st(k,v){SET[k]=v;applySet();settings()}
+function settings(){
+app.innerHTML=tb()+`<h2>⚙️ الإعدادات</h2>
+<div class="box"><b>👨‍🏫 اسم المعلم</b><input class="in" value="${esc(SET.tn)}" onchange="SET.tn=this.value.trim()||'المعلم';applySet()"></div>
+<div class="box"><b>🔊 المؤثرات الصوتية</b><br>${seg('fx',[[1,'تشغيل'],[0,'إيقاف']])}<br><b>🗣️ نطق الكلمات (صوت الجهاز)</b><br>${seg('voice',[[1,'تشغيل'],[0,'إيقاف']])}<br><b>⏩ سرعة النطق</b><br>${seg('rate',[[.5,'بطيء'],[.7,'عادي'],[.9,'سريع']])}<br><b>🎁 ظهور الستيكرات</b><br>${seg('stk',[[1,'تشغيل'],[0,'إيقاف']])}</div>
+<div class="box"><b>🎨 المظهر</b><br>${seg('theme',[['auto','تلقائي'],['light','فاتح'],['dark','داكن']])}<br><b>🌈 سيم الألوان</b><br>${seg('pal',PALS.map(x=>[x[0],x[1]]))}<br><b>🔠 حجم الخط</b><br>${seg('fs',[[0,'صغير'],[1,'عادي'],[2,'كبير']])}</div>
+<div class="box"><b>🎯 نسبة الإتقان للانتقال بين الدروس</b><br>${seg('thr',[[60,'٦٠٪'],[70,'٧٠٪'],[80,'٨٠٪'],[90,'٩٠٪']])}${CUR?`<br><b>🔒 ترتيب الدروس</b><br><button class="sm" onclick="PR.u=PR.u?0:1;save();settings()">${PR.u?'مفتوحة كلها 🔓 (اضغط للقفل)':'مقفولة بالترتيب 🔒 (اضغط للفتح)'}</button>`:''}</div>
+<div class="box"><b>💾 نسخة احتياطية</b><br><small>انسخ بيانات كل الطلاب واحفظها، واستوردها على أي جهاز (لا تشمل تسجيلات الصوت).</small><textarea id="bk" class="in" rows="3" placeholder="الصق هنا للاستيراد"></textarea><button class="sm" onclick="bkx()">📤 نسخ البيانات</button> <button class="sm" onclick="bki()">📥 استيراد</button></div>
+<div class="box"><button class="sm" onclick="welcome()">🔄 تغيير الطالب</button>${CUR?` <button class="sm" onclick="dash()">📊 تقرير ${esc(CUR.name)}</button>`:''}</div>`}
+function bkx(){const o={s:gS(),p:{},set:SET};gS().forEach(s=>{try{o.p[s.id]=JSON.parse(localStorage.getItem('arPR_'+s.id))}catch(e){}});const t=JSON.stringify(o);document.getElementById('bk').value=t;try{navigator.clipboard.writeText(t);note('✅ تم نسخ البيانات. الصقها في ملف أو رسالة واحفظها')}catch(e){note('انسخ النص من المربع واحفظه')}}
+function bki(){try{const o=JSON.parse(document.getElementById('bk').value);sS(o.s);Object.keys(o.p).forEach(id=>localStorage.setItem('arPR_'+id,JSON.stringify(o.p[id])));if(o.set){Object.assign(SET,o.set);applySet()}note('✅ تم الاستيراد');welcome()}catch(e){note('النص غير صالح')}}
+const bal=()=>stars-(PR.sp||0);
+function fun(){app.innerHTML=tb()+`<h2>🎪 ركن الترفيه</h2><p class="c">رصيدك: <b>⭐ ${bal()}</b></p><div class="grid"><button class="card" style="--c:#f5a623" onclick="wheel()"><span class="ic">🎡</span>عجلة الحظ<br><small>٥ ⭐</small></button><button class="card" style="--c:#e5484d" onclick="bub()"><span class="ic">🎈</span>فقاقيع الحروف</button><button class="card" style="--c:#2fb55a" onclick="mem()"><span class="ic">🧠</span>لعبة الذاكرة</button><button class="card" style="--c:#00a3bf" onclick="chal()"><span class="ic">🎭</span>تحدّي حركة</button><button class="card fin" style="--c:#6c5ce7" onclick="shop()"><span class="ic">🏪</span>متجر الشخصيات</button></div>`}
+function wheel(){if(bal()<5)return note('تحتاج ٥ نجوم 🌟 أكمل بعض الدروس!');PR.sp=(PR.sp||0)+5;save();
+const P=[['🎁 ٣ ستيكرات!',()=>{[0,1300,2600].forEach(t=>setTimeout(sticker,t))}],['⭐ +٨ نجوم!',()=>{stars+=8}],['🏆 +١٠ نجوم!',()=>{stars+=10}],['🥁 ارقص ١٠ ثواني!',()=>{}],['🦁 قلّد صوت الأسد!',()=>{}],['🍬 لفّة مجانية!',()=>{PR.sp-=5}]],E=['🎁','⭐','🏆','🥁','🦁','🍬'];
+app.innerHTML=tb()+`<h2>🎡 عجلة الحظ</h2><div class="bigq" id="wr" style="font-size:90px">🎡</div><p class="c" id="wt">بتلف...</p>`;let i=0;const iv=setInterval(()=>{document.getElementById('wr').textContent=E[i++%6];beep(300+i*40,.05)},120);
+setTimeout(()=>{clearInterval(iv);const k=Math.floor(Math.random()*6);P[k][1]();save();document.getElementById('wr').textContent=E[k];document.getElementById('wt').innerHTML=`<b>${P[k][0]}</b><br><button class="go" onclick="wheel()">لفّة جديدة 🎡</button><button class="go" onclick="fun()">ركن الترفيه</button>`;ding0()},1800)}
+function bub(){const T=LW[Math.floor(Math.random()*28)][0];let sc=0,t=30;
+app.innerHTML=tb()+`<h2>🎈 اضغط فقاقيع حرف ${T}</h2><p class="c">⏱️ <b id="bt">30</b> | ⭐ <b id="bs">0</b></p><div id="bf" style="position:relative;height:380px;overflow:hidden;background:var(--card);border-radius:20px;border:3px solid var(--line)"></div>`;
+const f=document.getElementById('bf');
+const sp1=setInterval(()=>{if(!document.getElementById('bf')){clearInterval(sp1);clearInterval(tm);return}const l=Math.random()<.4?T:LW[Math.floor(Math.random()*28)][0],b=document.createElement('button');b.textContent=l;
+b.style.cssText=`position:absolute;bottom:-70px;left:${Math.random()*80}%;width:64px;height:64px;border-radius:50%;border:0;font:800 32px Cairo,sans-serif;background:hsl(${Math.random()*360},80%,70%);color:#222;animation:rise ${4+Math.random()*2}s linear forwards`;
+b.onclick=()=>{if(l==T){sc++;beep(800,.1);b.remove()}else{sc=Math.max(0,sc-1);buzz();b.style.opacity=.3}document.getElementById('bs').textContent=sc};f.appendChild(b);setTimeout(()=>b.remove(),6500)},550);
+const tm=setInterval(()=>{t--;const e=document.getElementById('bt');if(e)e.textContent=t;if(t<=0){clearInterval(sp1);clearInterval(tm);if(!document.getElementById('bf'))return;if(sc>=8)sticker();PR.bub=Math.max(PR.bub||0,sc);save();
+app.innerHTML=tb()+`<h1>🎈 انتهى الوقت!</h1><p class="c">نتيجتك: ${sc} ${sc>=8?'🎉 ربحت ستيكر!':''}<br>أفضل نتيجة: ${PR.bub}</p><button class="go" onclick="bub()">العب مرة ثانية</button><button class="go" onclick="fun()">ركن الترفيه</button>`}},1000)}
+function mem(){const e=sh(LW).slice(0,6).map(x=>x[2][0][1]),c=sh(e.concat(e));let o=[],ok=0,mv=0,lock=0;
+app.innerHTML=tb()+`<h2>🧠 لعبة الذاكرة</h2><p class="c">حركات: <b id="mv">0</b></p><div id="mg" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${c.map((x,i)=>`<button class="tile" style="font-size:36px;height:80px" data-i="${i}">❓</button>`).join('')}</div>`;
+document.querySelectorAll('#mg .tile').forEach(b=>b.onclick=()=>{if(lock||b.dataset.f||o.includes(b))return;b.textContent=c[b.dataset.i];o.push(b);beep(500,.05);
+if(o.length==2){mv++;document.getElementById('mv').textContent=mv;
+if(c[o[0].dataset.i]==c[o[1].dataset.i]){o.forEach(x=>{x.dataset.f=1;x.style.borderColor='var(--ok)'});o=[];ding0();if(++ok==6){stars+=2;save();sticker();setTimeout(()=>{app.innerHTML=tb()+`<h1>🎉 برافو!</h1><p class="c">أنهيتها في ${mv} حركة (+٢ ⭐)</p><button class="go" onclick="mem()">مرة ثانية</button><button class="go" onclick="fun()">ركن الترفيه</button>`},1400)}}
+else{lock=1;buzz();setTimeout(()=>{o.forEach(x=>x.textContent='❓');o=[];lock=0},800)}}})}
+const CH=['اقفز ٥ مرات 🦘','قلّد صوت الأسد 🦁','ارسم دائرة في الهواء بيدك ⭕','دُر حول نفسك ٣ مرات 🌀','صفّق ١٠ مرات 👏','امشِ مثل البطة 🦆','قل اسم حيوان يبدأ بحرف الباء 🐄','قف على رجل واحدة ٥ ثواني 🦩','قلّد صوت القطة 🐱','اعمل أكبر ابتسامة 😁'];
+function chal(){app.innerHTML=tb()+`<h2>🎭 تحدّي حركة</h2><div class="bigq" style="font-size:30px">${CH[Math.floor(Math.random()*CH.length)]}</div><button class="go" onclick="ding();chal()">أنجزته! 👏</button><button class="go" style="background:var(--card);color:var(--fg);border:2px solid var(--line)" onclick="chal()">تحدّي آخر 🔁</button>`}
+const AV=[['🦸',15],['🧙',25],['🤖',40],['🦄',60],['🐲',80],['👑',100]];
+function shop(){PR.avs=PR.avs||[];app.innerHTML=tb()+`<h2>🏪 متجر الشخصيات</h2><p class="c">رصيدك ⭐ ${bal()} | شخصيتك: <b style="font-size:30px">${PR.av||'👦'}</b></p><div class="tiles">${AV.map(a=>`<button class="tile" onclick="buy('${a[0]}',${a[1]})"><div class="em">${a[0]}</div><small>${PR.avs.includes(a[0])?(PR.av==a[0]?'✅ مُفعّلة':'امتلكتها: اختر'):a[1]+' ⭐'}</small></button>`).join('')}</div><button class="go" onclick="PR.av='';save();shop()">الشخصية الأساسية 👦</button>`}
+function buy(e,c){PR.avs=PR.avs||[];if(PR.avs.includes(e)){PR.av=e}else if(bal()<c)return note('رصيدك لا يكفي. أكمل الدروس واجمع النجوم 🌟');else{PR.sp=(PR.sp||0)+c;PR.avs.push(e);PR.av=e;ding()}save();shop()}
+applySet();
+document.head.insertAdjacentHTML('beforeend','<style>h1{background:linear-gradient(90deg,var(--acc),#e5484d)!important;-webkit-background-clip:text;background-clip:text;color:transparent}.go{background:var(--acc)!important}body{background:radial-gradient(circle at 15% 0,color-mix(in srgb,var(--acc) 22%,transparent),transparent 40%),radial-gradient(circle at 95% 8%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 38%),var(--bg)!important;background-attachment:fixed}.sel{background:color-mix(in srgb,var(--acc) 20%,transparent)}</style>');
+
+/* ===== v3: محتوى جديد + شخصيات أصلية + تقارير ===== */
+(function(){
+const mk2=(t,i,c,h,k,x)=>{const w=k.filter(a=>a[1]),q=[];
+sh(w).slice(0,4).forEach(a=>q.push({q:"أيّ كلمة تناسب الصورة؟",b:a[1],o:[a[0],...sh(w.filter(y=>y!==a)).slice(0,2).map(y=>y[0])]}));
+sh(w).slice(0,1).forEach(a=>q.push({q:"اقرأ واختر الصورة:",b:a[0],o:[a[1],...sh(w.filter(y=>y!==a)).slice(0,2).map(y=>y[1])]}));
+return{t,i,c,h,k,q:q.concat(x||[]),m:sh(w).slice(0,5).map(a=>[a[0],a[1]])}};
+const tq2=(k,txt,opts)=>sh(k).slice(0,8).map(a=>({q:`${txt} «${a[0]}»؟`,b:a[1],o:[a[2],...opts.filter(o=>o!=a[2])]}));
+
+// 1) الهمزة
+const hm=[["أَرْنَب","🐰","همزة في أول الكلمة"],["أَسَد","🦁","همزة في أول الكلمة"],["أُذُن","👂","همزة في أول الكلمة"],["إِبْرَة","🪡","همزة تحت الألف"],["أَنْف","👃","همزة في أول الكلمة"],["أُسْرَة","👨‍👩‍👧","همزة في أول الكلمة"],["فَأْر","🐭","همزة في الوسط"],["ذِئْب","🐺","همزة في الوسط"],["كَأْس","🥤","همزة في الوسط"],["سَمَاء","🌤️","همزة في الآخر"],["دُعَاء","🤲","همزة في الآخر"]];
+const H=mk2("الهمزة","🅰️","#e5484d","<b>الهمزة (ء)</b> صوت قصير نبدأ به أو نقف عليه. تأتي <b>في أول الكلمة</b> فوق الألف أو تحتها: أَسَد، إِبْرَة. وتأتي <b>في الوسط</b>: فَأْر. وتأتي <b>في الآخر</b>: سَمَاء. <b>حركة:</b> انطق الهمزة بنقرة خفيفة على الطاولة 👆"+"<br><small>اضغط الكلمة لتسمعها.</small>",hm,[{q:"أيّ كلمة فيها همزة في أولها؟",o:["أَسَد","فَأْر","سَمَاء"]},{q:"أيّ كلمة فيها همزة في آخرها؟",o:["سَمَاء","أَنْف","كَأْس"]},{q:"أيّ كلمة فيها همزة في وسطها؟",o:["فَأْر","أُذُن","دُعَاء"]}]);
+
+// 2) المذكر والمؤنث
+const gn=[["وَلَد","👦","مذكر"],["بِنْت","👧","مؤنث"],["مُعَلِّم","👨‍🏫","مذكر"],["مُعَلِّمَة","👩‍🏫","مؤنث"],["قِطّ","🐈","مذكر"],["قِطَّة","🐱","مؤنث"],["دِيك","🐓","مذكر"],["دَجَاجَة","🐔","مؤنث"],["طَالِب","🧑‍🎓","مذكر"],["طَالِبَة","👩‍🎓","مؤنث"],["رَجُل","👨","مذكر"],["اِمْرَأَة","👩","مؤنث"]];
+const G={t:"المذكر والمؤنث",i:"⚥",c:"#e84393",h:"<b>المذكر</b> للولد والرجل: وَلَد، مُعَلِّم. <b>المؤنث</b> للبنت والمرأة، وغالباً ينتهي بتاء مربوطة: مُعَلِّمَة، قِطَّة. <b>حركة:</b> مذكر = أضع يدي على رأسي 🧢 | مؤنث = أضع يدي على كتفي 🎀",k:gn.map(a=>[a[0],a[1],a[2]]),q:tq2(gn,"ما نوع الكلمة",["مذكر","مؤنث"]).concat([{q:"أيّ كلمة مؤنثة؟",o:["مُعَلِّمَة","مُعَلِّم","رَجُل"]},{q:"أيّ كلمة مذكرة؟",o:["دِيك","دَجَاجَة","بِنْت"]}]),m:sh(gn).slice(0,5).map(a=>[a[0],a[1]])};
+
+// 3) المفرد والمثنى والجمع
+const pl=[["كِتَاب","📕","مفرد"],["كِتَابَان","📕📕","مثنى"],["كُتُب","📚","جمع"],["وَلَد","👦","مفرد"],["وَلَدَان","👦👦","مثنى"],["أَوْلَاد","👥","جمع"],["قَلَم","✏️","مفرد"],["قَلَمَان","✏️✏️","مثنى"],["أَقْلَام","🖊️","جمع"],["بَيْت","🏠","مفرد"],["بَيْتَان","🏠🏠","مثنى"],["بُيُوت","🏘️","جمع"]];
+const P={t:"المفرد والمثنى والجمع",i:"🔢",c:"#00a3bf",h:"<b>المفرد</b> = واحد: كِتَاب. <b>المثنى</b> = اثنان وينتهي بـ <b>ـانِ</b>: كِتَابَان. <b>الجمع</b> = أكثر من اثنين: كُتُب. <b>حركة:</b> مفرد = إصبع ☝️ | مثنى = إصبعان ✌️ | جمع = كل أصابعك 🖐️",k:pl.map(a=>[a[0],a[1],a[2]]),q:tq2(pl,"ما نوع الكلمة",["مفرد","مثنى","جمع"]).concat([{q:"أيّ كلمة مثنى؟",o:["قَلَمَان","قَلَم","أَقْلَام"]},{q:"أيّ كلمة جمع؟",o:["بُيُوت","بَيْت","بَيْتَان"]}]),m:sh(pl).slice(0,5).map(a=>[a[0],a[1]])};
+
+// 4) الأضداد
+const an=[["كَبِير","صَغِير","🐘"],["طَوِيل","قَصِير","🦒"],["سَرِيع","بَطِيء","🐆"],["حَارّ","بَارِد","🔥"],["فَوْق","تَحْت","⬆️"],["مَفْتُوح","مُغْلَق","🔓"],["نَظِيف","وَسِخ","🧼"],["فَرْحَان","حَزِين","😀"]];
+const ak=an.flatMap(a=>[[a[0],a[2],"ضدّها: "+a[1]],[a[1],"","ضدّها: "+a[0]]]);
+const allw=an.flatMap(a=>[a[0],a[1]]);
+const aq2=sh(an.flatMap(a=>[[a[0],a[1]],[a[1],a[0]]])).slice(0,8).map(p=>({q:`ما ضدّ كلمة «${p[0]}»؟`,o:[p[1],...sh(allw.filter(w=>w!=p[1]&&w!=p[0])).slice(0,2)]}));
+const AN={t:"الأضداد",i:"↔️",c:"#f5a623",h:"<b>الضدّ</b> هو الكلمة التي معناها عكس الكلمة الأخرى: كَبِير ↔ صَغِير. <b>حركة:</b> افتح ذراعيك للكبير، وضمّهما للصغير 🙆",k:ak,q:aq2,m:an.slice(0,5).map(a=>[a[0],a[1]])};
+
+[H,G,P,AN].forEach(l=>L.push(l));
+L.push({t:"قراءة جمل",i:"📖",c:"#f5a623",
+h:"الآن نقرأ جملاً كاملة! اقرأ ببطء، ثم أعد القراءة بسرعة أكبر. <b>تحدّي:</b> اقرأ الجملة دون أخطاء 3 مرات 🏅",
+k:[["بَابَا فِي الْبَيْتِ","🏠","بابا + في + البيت"],["أَنَا أُحِبُّ مَامَا","❤️","أنا + أحب + ماما"],["هُوَ يَشْرَبُ الْمَاءَ","💧","هو + يشرب + الماء"],["هِيَ تَقْرَأُ كِتَابًا","📖","هي + تقرأ + كتاباً"],["الْقِطَّةُ عَلَى الْبَابِ","🐱","القطة + على + الباب"],["نَحْنُ نَلْعَبُ بِالْكُرَةِ","⚽","نحن + نلعب + بالكرة"]],
+q:[{q:"أيّ صورة تناسب الجملة؟",b:"هِيَ تَقْرَأُ كِتَابًا",o:["📖","💧","⚽"]},{q:"أيّ صورة تناسب الجملة؟",b:"هُوَ يَشْرَبُ الْمَاءَ",o:["💧","🏠","❤️"]},{q:"أيّ صورة تناسب الجملة؟",b:"نَحْنُ نَلْعَبُ بِالْكُرَةِ",o:["⚽","📖","🐱"]},{q:"أكمل: أَنَا ___ مَامَا",o:["أُحِبُّ","يَشْرَبُ","تَقْرَأُ"]},{q:"أكمل: بَابَا ___ الْبَيْتِ",o:["فِي","هُوَ","أَنَا"]}]});
+
+// قصص أطول
+S.push(
+{t:"رِحْلَةٌ إِلَى الْحَدِيقَةِ",e:"🌳",p:[["ذَهَبْنَا أَنَا وَبَابَا إِلَى الْحَدِيقَةِ","🚶👨🌳"],["رَأَيْتُ وَرْدَةً حَمْرَاءَ جَمِيلَةً","🌹"],["جَاءَتْ فَرَاشَةٌ وَوَقَفَتْ عَلَى الْوَرْدَةِ","🦋"],["ضَحِكْتُ وَقُلْتُ: مَا أَجْمَلَ الْحَدِيقَةَ!","😄"],["ثُمَّ رَجَعْنَا إِلَى الْبَيْتِ فَرِحِينَ","🏠😊"]],q:[{q:"إِلَى أَيْنَ ذَهَبْنَا؟",o:["إِلَى الْحَدِيقَةِ","إِلَى الْمَدْرَسَةِ","إِلَى الْبَحْرِ"]},{q:"مَا لَوْنُ الْوَرْدَةِ؟",o:["حَمْرَاءُ","زَرْقَاءُ","صَفْرَاءُ"]},{q:"مَنْ وَقَفَتْ عَلَى الْوَرْدَةِ؟",o:["الْفَرَاشَةُ","الْقِطَّةُ","الطَّائِرُ"]}]},
+{t:"يَوْمٌ فِي الْمَدْرَسَةِ",e:"🏫",p:[["أَسْتَيْقِظُ صَبَاحاً وَأَلْبَسُ مَلَابِسِي","🌅👕"],["آخُذُ حَقِيبَتِي وَأَذْهَبُ إِلَى الْمَدْرَسَةِ","🎒🏫"],["الْمُعَلِّمَةُ تَقْرَأُ لَنَا قِصَّةً","👩‍🏫📖"],["نَكْتُبُ وَنَرْسُمُ مَعَ أَصْدِقَائِي","✍️🎨"],["أُحِبُّ مَدْرَسَتِي كَثِيراً","❤️"]],q:[{q:"مَاذَا آخُذُ إِلَى الْمَدْرَسَةِ؟",o:["حَقِيبَتِي","كُرَتِي","قِطَّتِي"]},{q:"مَاذَا تَقْرَأُ الْمُعَلِّمَةُ؟",o:["قِصَّةً","رِسَالَةً","جَرِيدَةً"]},{q:"مَعَ مَنْ أَكْتُبُ وَأَرْسُمُ؟",o:["مَعَ أَصْدِقَائِي","مَعَ الْقِطَّةِ","مَعَ الْقَمَرِ"]}]},
+{t:"الطَّائِرُ الصَّغِيرُ",e:"🐦",p:[["عَلَى الشَّجَرَةِ عُشٌّ صَغِيرٌ","🌳🪺"],["فِي الْعُشِّ طَائِرٌ صَغِيرٌ جَائِعٌ","🐦"],["جَاءَتْ أُمُّهُ وَمَعَهَا حَبَّاتُ قَمْحٍ","🐦🌾"],["أَكَلَ الطَّائِرُ وَشَبِعَ","😋"],["ثُمَّ نَامَ فِي الْعُشِّ","😴"]],q:[{q:"أَيْنَ الْعُشُّ؟",o:["عَلَى الشَّجَرَةِ","فِي الْمَاءِ","عَلَى الْبَابِ"]},{q:"مَاذَا أَحْضَرَتِ الْأُمُّ؟",o:["حَبَّاتِ قَمْحٍ","سَمَكاً","تُفَّاحاً"]},{q:"كَيْفَ كَانَ الطَّائِرُ قَبْلَ الْأَكْلِ؟",o:["جَائِعاً","نَائِماً","غَاضِباً"]}]}
+);
+})();
+
+/* ===== شخصيات أصلية (بدل الشخصيات القديمة) ===== */
+const AV2=[['🧚‍♀️',20,'جنيّة الزهور'],['🧜‍♀️',30,'حورية البحر'],['👩‍🚀',35,'رائدة الفضاء'],['🦸‍♀️',45,'بطلة خارقة'],['🧙‍♀️',50,'ساحرة النجوم'],['👸',70,'أميرة القلعة'],['🐰',25,'أرنوبة'],['🦋',55,'فراشة'],['🐻',65,'الدب الطيب'],['🦸',15,'بطل خارق'],['🧙',25,'ساحر'],['🤖',40,'روبوت'],['🦄',60,'يونيكورن'],['🐲',80,'تنين صغير'],['👑',100,'التاج']].sort((a,b)=>a[1]-b[1]);
+shop=function(){PR.avs=PR.avs||[];app.innerHTML=tb()+`<h2>🏪 متجر الشخصيات</h2><p class="c">رصيدك ⭐ ${bal()} | شخصيتك: <b style="font-size:30px">${PR.av||'👦'}</b></p><div class="tiles">${AV2.map(a=>`<button class="tile" onclick="buy('${a[0]}',${a[1]})"><div class="em">${a[0]}</div><small>${a[2]}<br>${PR.avs.includes(a[0])?(PR.av==a[0]?'✅ مُفعّلة':'اخترها'):a[1]+' ⭐'}</small></button>`).join('')}</div><button class="go" onclick="PR.av='';save();shop()">الشخصية الأساسية 👦</button>`};
+
+/* ===== تقارير: رسم بياني + خطة الشهر القادم ===== */
+const dash0=dash;
+function planText(){const la=L.map((l,i)=>[l.t,PR.b[i],PR.m[i]]),rev=la.filter(x=>x[1]!=null&&!(x[2]>=80)).map(x=>x[0]),nxt=la.filter(x=>x[1]==null).slice(0,3).map(x=>x[0]),ok=la.filter(x=>x[2]>=80).length,er=Object.entries(PR.e||{}).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]);
+return `الخطة المقترحة للشهر القادم — الطالب: ${CUR.name}\nالمعلم: ${SET.tn}\n\nالمهارات المتقنة حالياً: ${ok} من ${L.length}\nالأهداف:\n1) مراجعة وإتقان: ${rev.join('، ')||'لا يوجد'}\n2) البدء بدروس جديدة: ${nxt.join('، ')||'لا يوجد'}\n3) التركيز على الحروف: ${28-LCN()} حرف متبقٍ\n\nأكثر الأخطاء: ${er.join(' | ')||'—'}\nالمقترح: ٣ جلسات أسبوعياً، ١٥ دقيقة قراءة + ١٠ دقائق ألعاب + مراجعة الأخطاء.`}
+function cpPlan(){try{navigator.clipboard.writeText(planText());note('✅ تم نسخ الخطة المقترحة')}catch(e){note('تعذّر النسخ')}}
+dash=function(){dash0();const np=app.querySelector('.np');if(!np||!CUR)return;
+const W=560,H=130,n=L.length,bw=W/n;
+const bars=L.map((l,i)=>{const v=PR.b[i],h=v==null?3:Math.max(3,v*1.2),col=v==null?'var(--line)':(PR.m[i]>=80?'var(--ok)':'var(--acc)');return `<rect x="${i*bw+2}" y="${H-h}" width="${bw-4}" height="${h}" rx="3" style="fill:${col}"/><text x="${i*bw+bw/2}" y="${H+11}" font-size="7" text-anchor="middle" style="fill:var(--fg)">${i+1}</text>`}).join('');
+np.insertAdjacentHTML('beforebegin',`<h3>📈 تقدّم الدروس (أفضل نسبة لكل درس)</h3><div class="box"><svg viewBox="0 0 ${W} ${H+16}" width="100%" role="img" aria-label="رسم بياني لتقدم الدروس"><line x1="0" y1="${H-96}" x2="${W}" y2="${H-96}" style="stroke:var(--line)" stroke-dasharray="4"/>${bars}</svg><small>الأخضر = متقن (٨٠٪ فأكثر) • الملوّن = قيد التعلّم • الرمادي = لم يبدأ. الرقم تحت العمود هو رقم الدرس.</small></div><h3>🗓️ ربط بالخطة الشهرية</h3><div class="box"><pre style="white-space:pre-wrap;font:inherit;font-size:15px;margin:0">${esc(planText())}</pre></div><div class="np"><button class="go" onclick="cpPlan()">📋 نسخ الخطة المقترحة</button></div>`)};
+
+/* ===== v4: مجموعات + رجوع + مزامنة سحابية + حماية المعلم ===== */
+const CLOUD_URL='';   // اختياري: ضع هنا رابط Apps Script لو عاوز تثبّته جوه الملف نفسه
+const CLOUD_RE=/^https:\/\/script\.google\.com\/(a\/macros\/[\w.-]+|macros)\/s\/[\w-]+\/exec$/;
+const lsg=k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}};
+(function(){try{const c=new URLSearchParams(location.search).get('c');if(c&&CLOUD_RE.test(c)&&!lsg('arCloud'))localStorage.setItem('arCloud',c)}catch(e){}})();
+const cu=()=>CLOUD_URL||lsg('arCloud');
+let SUB=0,BK=0;const HIST=[];
+
+/* ---------- المجموعات ---------- */
+const GDEF=[
+['الحركات والمدود','🔤','#e5484d',['الحركات القصيرة','الحركات الطويلة','المدود بالتفصيل']],
+['قراءة الكلمات والجمل','📖','#2fb55a',['كلمات بسيطة','قراءة جمل']],
+['السكون والتنوين والهمزة','✨','#00a3bf',['السكون','الهمزة']],
+['التاء واللام','🎀','#e84393',['التاء المربوطة','التاء المفتوحة','تاء مربوطة','اللام القمرية','اللام الشمسية','شمسية أم']],
+['الضمائر','🙋','#6c5ce7',['ضمائر المتكلم','ضمائر المخاطب','ضمائر الغائب']],
+['أسماء الإشارة وحروف الجر','👉','#f5a623',['أسماء الإشارة','حروف الجر']],
+['الأفعال','🏃','#e5484d',['أفعال ثلاثية بالفتح','أفعال ثلاثية بالضم','أفعال ثلاثية بالكسر','أفعال وجمل']],
+['قواعد اللغة','📚','#00a3bf',['المذكر والمؤنث','المفرد والمثنى والجمع','الأضداد']]];
+function groups(){const used=new Set();
+const G=GDEF.map(g=>{const idx=[];g[3].forEach(p=>L.forEach((l,i)=>{if(!used.has(i)&&l.t.startsWith(p)){idx.push(i);used.add(i)}}));return{n:g[0],i:g[1],c:g[2],idx}}).filter(g=>g.idx.length);
+const rest=L.map((_,i)=>i).filter(i=>!used.has(i));if(rest.length)G.push({n:'دروس أخرى',i:'🧩',c:'#777',idx:rest});return G}
+
+home=function(){if(!CUR)return welcome();ST=null;const due=PR.d.filter(x=>x.due<=Date.now()).length,G=groups();
+app.innerHTML=tb()+`<h1>📚 أَتَعَلَّمُ الْقِرَاءَة</h1><p class="c">👨‍🏫 المعلم ${esc(SET.tn)} &nbsp;|&nbsp; ${PR.av||'👦'} ${esc(CUR.name)}</p><p class="c">اختر مجموعة دروس 👇<br><small>🎙️ تقدر تسجّل صوتك على الكلمات داخل كل درس</small></p>${due?`<button class="go" onclick="review()">🔁 مراجعة اليوم (${due})</button>`:''}<div class="grid"><button class="card fin" style="--c:#e5484d" onclick="letters()"><span class="ic">🔤</span>تعلّم الحروف من البداية ✨${LC()}</button>${G.map((g,gi)=>{const d=g.idx.filter(i=>PR.m[i]>=80).length;return `<button class="card" style="--c:${g.c}" onclick="groupScreen(${gi})"><span class="ic">${g.i}</span>${g.n}<br><small>${d}/${g.idx.length} ✅</small></button>`}).join('')}<button class="card" style="--c:#00a3bf" onclick="stories()"><span class="ic">📕</span>قصص قصيرة</button><button class="card" style="--c:#2fb55a" onclick="writing()"><span class="ic">✍️</span>الكتابة والإملاء</button><button class="card fin" onclick="fin()"><span class="ic">🏆</span>الاختبار الكبير</button><button class="card" style="--c:#f5a623" onclick="rew()"><span class="ic">🏅</span>مكافآتي</button><button class="card" style="--c:#e84393" onclick="fun()"><span class="ic">🎪</span>ركن الترفيه</button><button class="card" style="--c:#555" onclick="settings()"><span class="ic">⚙️</span>الإعدادات</button><button class="card" style="--c:#777" onclick="welcome()"><span class="ic">🔄</span>تغيير الطالب</button><button class="card fin" style="--c:#999" onclick="tgate(dash)"><span class="ic">📊</span>تقرير الطالب (للمعلم 🔒)</button></div>`};
+
+function groupScreen(gi){const g=groups()[gi];if(!g)return home();
+app.innerHTML=tb()+`<h2>${g.i} ${g.n}</h2><p class="c">${g.idx.filter(i=>PR.m[i]>=80).length} من ${g.idx.length} دروس متقنة</p><p id="mm" class="c"></p><div class="grid">${g.idx.map((i,j)=>{const l=L[i],lk=j>0&&!PR.u&&!(PR.m[g.idx[j-1]]>=80);return `<button class="card" style="--c:${l.c};opacity:${lk?.5:1}" onclick="${lk?'lockmsg()':`learn(${i})`}"><span class="ic">${lk?'🔒':l.i}</span>${j+1}. ${l.t}${PR.m[i]>=80?' ✅':''}</button>`}).join('')}</div>`}
+
+// بعد إنهاء الدرس: الزر التالي يكمل داخل نفس المجموعة
+const win1=win;win=function(i){win1(i);SUB=1;const G=groups(),gi=G.findIndex(x=>x.idx.includes(i));if(gi<0)return;const g=G[gi],nx=g.idx[g.idx.indexOf(i)+1],b=app.querySelector('.go');if(!b)return;
+if(nx!=null)b.setAttribute('onclick',`learn(${nx})`);else{b.setAttribute('onclick',`groupScreen(${gi})`);b.textContent='رجوع إلى '+g.n+' ⬅️'}};
+
+/* ---------- حماية قسم المعلم ---------- */
+function askCode(msg){return new Promise(res=>{const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px';
+d.innerHTML=`<div class="box" style="background:var(--card);max-width:360px;width:100%;border-style:solid"><p class="c"><b>🔐 ${esc(msg)}</b></p><input id="ac" type="password" class="in" autocomplete="off"><div class="c"><button class="sm" id="ao">تأكيد</button> <button class="sm" id="ax">إلغاء</button></div></div>`;
+document.body.appendChild(d);const i=d.querySelector('#ac');i.focus();const f=v=>{d.remove();res(v)};
+d.querySelector('#ao').onclick=()=>f(i.value.trim());d.querySelector('#ax').onclick=()=>f(null);i.onkeydown=e=>{if(e.key=='Enter')f(i.value.trim())}})}
+const tkGet=()=>{try{return sessionStorage.getItem('tk')||''}catch(e){return ''}},tkSet=v=>{try{v?sessionStorage.setItem('tk',v):sessionStorage.removeItem('tk')}catch(e){}};
+async function cget(q){const u=cu(),r=await fetch(u+(u.includes('?')?'&':'?')+q);if(!r.ok)throw new Error('http');return r.json()}
+async function tauth(){if(tkGet())return true;
+if(cu()){const k=await askCode('أدخل رمز المعلم');if(!k)return false;try{const r=await cget('a=check&key='+encodeURIComponent(k));if(r.ok){tkSet(k);return true}}catch(e){note('تعذّر التحقق، تأكد من الإنترنت');return false}note('الرمز غير صحيح');return false}
+if(!SET.pin){const k=await askCode('اختر رمز المعلم (٤ أحرف أو أرقام على الأقل) لحماية التقارير والإعدادات');if(!k||k.length<4)return false;SET.pin=k;applySet();tkSet(k);return true}
+const k=await askCode('أدخل رمز المعلم');if(k&&k===SET.pin){tkSet(k);return true}note('الرمز غير صحيح');return false}
+async function tgate(fn){if(await tauth())fn()}
+function tlock(){tkSet('');settings()}
+
+/* ---------- المزامنة مع Google Sheet ---------- */
+let CT=null;
+function cloudQueue(){if(!cu()||!KEY||!CUR)return;clearTimeout(CT);CT=setTimeout(cloudPush,4000)}
+function packPR(){const P=Object.assign({},PR);P.l=(PR.l||[]).slice(-30);P.e=Object.fromEntries(Object.entries(PR.e||{}).sort((a,b)=>b[1]-a[1]).slice(0,20));return P}
+function cloudPush(){CT=null;const u=cu();if(!u||!CUR||!KEY)return;
+const n=Object.keys(PR.m).filter(k=>PR.m[k]>=80).length,acc=PR.ok+PR.no?Math.round(100*PR.ok/(PR.ok+PR.no)):0;
+const body=JSON.stringify({a:'put',id:CUR.id,name:CUR.name,grade:GR(CUR),updated:Date.now(),stars:stars,mastered:n,total:L.length,acc,days:(PR.days||[]).length,min:Math.round((PR.sec||0)/60),data:packPR()});
+if(body.length>48000)return;
+try{fetch(u,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body,keepalive:body.length<60000}).catch(()=>{})}catch(e){}}
+const save1=save;save=function(){save1();cloudQueue()};
+const pickS1=pickS;pickS=function(id){pickS1(id);cloudQueue()};
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&CT){clearTimeout(CT);cloudPush()}});
+
+const dtf=t=>new Date(t).toLocaleDateString('ar-EG');
+const ago=t=>{const m=Math.round((Date.now()-t)/6e4);return !t?'—':m<2?'الآن':m<60?m+' د':m<1440?Math.round(m/60)+' س':Math.round(m/1440)+' يوم'};
+let RS=[];
+async function teacherView(){
+if(!cu())return note('اضبط رابط المزامنة أولاً من الإعدادات ← قسم المعلم');
+let k=tkGet();if(!k){k=await askCode('أدخل رمز المعلم');if(!k)return}
+app.innerHTML=tb()+'<h2>👨‍🏫 لوحة كل الطلاب</h2><p class="c">⏳ جارٍ التحميل...</p>';
+try{const r=await cget('a=list&key='+encodeURIComponent(k));if(!r.ok){tkSet('');app.innerHTML=tb()+'<h2>👨‍🏫 لوحة كل الطلاب</h2><p class="c">❌ الرمز غير صحيح</p><button class="go" onclick="teacherView()">حاول مرة أخرى</button>';return}
+tkSet(k);RS=r.rows||[];renderT()}
+catch(e){app.innerHTML=tb()+'<h2>👨‍🏫 لوحة كل الطلاب</h2><p class="c">❌ تعذّر التحميل. تأكد من الإنترنت ومن رابط المزامنة.</p><button class="go" onclick="teacherView()">إعادة المحاولة</button>'}}
+function renderT(){RS.sort((a,b)=>(b.updated||0)-(a.updated||0));
+app.innerHTML=tb()+`<h2>👨‍🏫 لوحة كل الطلاب</h2><p class="c">${RS.length} طالب • اضغط على الطالب لعرض تقريره</p><div class="box"><table><tr><th>الطالب</th><th>آخر نشاط</th><th>⭐</th><th>متقن</th><th>دقة</th><th>دقائق</th></tr>${RS.map((r,i)=>`<tr onclick="remoteReport(${i})" style="cursor:pointer"><td><b>${esc(r.name)}</b><br><small>${esc(r.grade||'')}</small></td><td>${ago(r.updated)}</td><td>${esc(r.stars)}</td><td>${esc(r.mastered)}/${esc(r.total)}</td><td>${esc(r.acc)}%</td><td>${esc(r.min)}</td></tr>`).join('')||'<tr><td colspan="6">لا يوجد طلاب بعد</td></tr>'}</table></div><div class="np"><button class="go" onclick="teacherView()">🔄 تحديث</button><button class="go" onclick="csvT()">📥 تنزيل Excel (CSV)</button><button class="go" onclick="window.print()">🖨️ طباعة / PDF</button></div>`}
+function csvT(){const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',h=['الاسم','الصف','آخر نشاط','النجوم','الدروس المتقنة','إجمالي الدروس','الدقة %','أيام الدراسة','دقائق'],
+rows=[h].concat(RS.map(r=>[r.name,r.grade,r.updated?new Date(r.updated).toISOString().slice(0,16).replace('T',' '):'',r.stars,r.mastered,r.total,r.acc,r.days,r.min])),
+txt='﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n');
+try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/csv;charset=utf-8'}));a.download='students.csv';document.body.appendChild(a);a.click();a.remove()}catch(e){try{navigator.clipboard.writeText(txt);note('تم نسخ الجدول، الصقه في Excel')}catch(x){note('تعذّر التنزيل')}}}
+
+function chartSVG(P){const W=560,H=130,n=L.length,bw=W/n;
+const bars=L.map((l,i)=>{const v=P.b&&P.b[i],h=v==null?3:Math.max(3,v*1.2),col=v==null?'var(--line)':(P.m&&P.m[i]>=80?'var(--ok)':'var(--acc)');return `<rect x="${i*bw+2}" y="${H-h}" width="${bw-4}" height="${h}" rx="3" style="fill:${col}"/><text x="${i*bw+bw/2}" y="${H+11}" font-size="7" text-anchor="middle" style="fill:var(--fg)">${i+1}</text>`}).join('');
+return `<svg viewBox="0 0 ${W} ${H+16}" width="100%" role="img" aria-label="رسم بياني لتقدم الدروس">${bars}</svg><small>الأخضر = متقن • الملوّن = قيد التعلّم • الرمادي = لم يبدأ</small>`}
+function planFor(P,name){const la=L.map((l,i)=>[l.t,P.b&&P.b[i],P.m&&P.m[i]]),rev=la.filter(x=>x[1]!=null&&!(x[2]>=80)).map(x=>x[0]),nxt=la.filter(x=>x[1]==null).slice(0,3).map(x=>x[0]),ok=la.filter(x=>x[2]>=80).length,er=Object.keys(P.e||{}).slice(0,5);
+return `الخطة المقترحة للشهر القادم — الطالب: ${name}\nالمهارات المتقنة: ${ok} من ${L.length}\n1) مراجعة وإتقان: ${rev.join('، ')||'لا يوجد'}\n2) دروس جديدة: ${nxt.join('، ')||'لا يوجد'}\nأكثر الأخطاء: ${er.join(' | ')||'—'}\nالمقترح: ٣ جلسات أسبوعياً، ١٥ دقيقة قراءة + ١٠ دقائق ألعاب + مراجعة الأخطاء.`}
+function remoteReport(i){const r=RS[i];if(!r)return;const P=r.data||{},la=L.map((l,j)=>[l.t,P.b&&P.b[j],P.m&&P.m[j],P.a&&P.a[j]]),wk=la.filter(x=>x[1]!=null&&!(x[2]>=80)),sg=la.filter(x=>x[1]>=90),er=Object.entries(P.e||{}).sort((a,b)=>b[1]-a[1]).slice(0,10);
+window.RPT=planFor(P,r.name);
+app.innerHTML=tb()+`<h2>📊 تقرير: ${esc(r.name)}</h2><div class="box">👦 ${esc(r.name)} — ${esc(r.grade||'')}<br>🕒 آخر نشاط: ${r.updated?dtf(r.updated):'—'} (${ago(r.updated)})<br>✅ دروس متقنة: <b>${esc(r.mastered)}</b> من ${esc(r.total)}<br>🎯 الدقة: <b>${esc(r.acc)}%</b> | 🗓️ أيام: <b>${esc(r.days)}</b> | ⏱️ <b>${esc(r.min)}</b> دقيقة | ⭐ ${esc(r.stars)}</div><h3>📈 التقدّم</h3><div class="box">${chartSVG(P)}</div><h3>📚 الدروس</h3><div class="box"><table><tr><th>الدرس</th><th>أفضل نسبة</th><th>محاولات</th></tr>${la.map((x,j)=>`<tr><td>${j+1}. ${esc(x[0])}</td><td>${x[1]!=null?x[1]+'%':'—'} ${x[2]>=80?'✅':''}</td><td>${x[3]||0}</td></tr>`).join('')}</table></div><h3>🎯 أكثر الأخطاء</h3><div class="box">${er.length?er.map(x=>esc(x[0])+' ('+x[1]+'×)').join('<br>'):'لا أخطاء 👏'}</div><h3>💪 نقاط القوة</h3><div class="box">${sg.length?sg.map(x=>esc(x[0])).join('<br>'):'—'}</div><h3>🔄 تحتاج مراجعة</h3><div class="box">${wk.length?wk.map(x=>esc(x[0])+' ('+x[1]+'%)').join('<br>'):'لا شيء 👏'}</div><h3>🗓️ الخطة المقترحة</h3><div class="box"><pre style="white-space:pre-wrap;font:inherit;font-size:15px;margin:0">${esc(window.RPT)}</pre></div><div class="np"><button class="go" onclick="try{navigator.clipboard.writeText(window.RPT);note('✅ تم النسخ')}catch(e){}">📋 نسخ الخطة</button><button class="go" onclick="window.print()">🖨️ طباعة / PDF</button><button class="go" style="background:var(--no)!important" onclick="delRemote(${i},this)">حذف الطالب من السحابة 🗑️</button></div>`}
+async function delRemote(i,b){const r=RS[i];if(!r)return;if(!b.dataset.s){b.dataset.s=1;b.textContent='اضغط مرة أخرى للتأكيد';return}
+try{const x=await cget('a=del&key='+encodeURIComponent(tkGet())+'&id='+encodeURIComponent(r.id));if(x.ok){RS.splice(i,1);renderT()}else note('تعذّر الحذف')}catch(e){note('تعذّر الحذف')}}
+
+/* ---------- الإعدادات: قسم المعلم + رابط المزامنة ---------- */
+const settings1=settings;settings=function(){settings1();const un=!!tkGet(),T=['اسم المعلم','نسبة الإتقان','نسخة احتياطية'];
+if(!un)[...app.querySelectorAll('.box')].filter(b=>T.some(t=>b.textContent.includes(t))).forEach(b=>b.remove());
+app.insertAdjacentHTML('beforeend',un?`<div class="box"><b>☁️ مزامنة الطلاب (Google Sheet)</b><br><small>الصق رابط Apps Script (ينتهي بـ /exec). بعدها كل طالب يفتح الرابط تظهر بياناته عندك.</small><input id="cuin" class="in" dir="ltr" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(cu())}"><button class="sm" onclick="saveCloud()">💾 حفظ الرابط</button> <button class="sm" onclick="shareLink()">🔗 نسخ رابط الطلاب</button><br><button class="sm" onclick="teacherView()">👨‍🏫 لوحة كل الطلاب</button> <button class="sm" onclick="tlock()">🔒 قفل قسم المعلم</button></div>`:`<div class="box c"><button class="sm" onclick="tgate(settings)">🔒 قسم المعلم</button></div>`)};
+function saveCloud(){const v=document.getElementById('cuin').value.trim();if(v&&!CLOUD_RE.test(v))return note('الرابط غير صحيح. لازم يكون رابط Apps Script وينتهي بـ /exec');try{v?localStorage.setItem('arCloud',v):localStorage.removeItem('arCloud')}catch(e){}note(v?'✅ تم حفظ الرابط':'تم مسح الرابط')}
+function shareLink(){if(!/^https?:/.test(location.protocol))return note('افتح التطبيق من رابطه على الإنترنت أولاً ثم انسخ رابط الطلاب');if(!cu())return note('احفظ رابط المزامنة أولاً');
+const u=location.origin+location.pathname+'?c='+encodeURIComponent(cu());try{navigator.clipboard.writeText(u);note('✅ تم نسخ رابط الطلاب')}catch(e){note(esc(u))}}
+const welcome1=welcome;welcome=function(){welcome1();app.insertAdjacentHTML('beforeend',cu()?`<p class="c"><button class="sm" onclick="teacherView()">👨‍🏫 لوحة المعلم (كل الطلاب)</button></p>`:'')};
+
+/* ---------- زر الرجوع خطوة واحدة ---------- */
+const TRK=['home','welcome','groupScreen','learn','letters','letter','stories','story','writing','trace','rew','fun','shop','settings','dash','teacherView','remoteReport'],
+REPL=['learn','trace','story','letter','remoteReport'],RST=['home','welcome'],
+SUBS=['qs_','mrun','dstep','fin','review','lch','lquiz','miss','dict','wheel','bub','mem','chal'];
+TRK.forEach(n=>{const f=window[n];window[n]=function(...a){if(!BK){if(RST.includes(n))HIST.length=0;const t=HIST[HIST.length-1];
+if(t&&t[0]==n&&(REPL.includes(n)||JSON.stringify(t[1])==JSON.stringify(a)))HIST[HIST.length-1]=[n,a];else HIST.push([n,a])}BK=0;SUB=0;return f.apply(this,a)}});
+SUBS.forEach(n=>{const f=window[n];window[n]=function(...a){SUB=1;return f.apply(this,a)}});
+function back(){if(SUB)SUB=0;else HIST.pop();const p=HIST[HIST.length-1];if(!p)return home();BK=1;window[p[0]](...p[1])}
+
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+welcome();
+</script>
+</body>
+</html>
